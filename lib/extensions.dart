@@ -1,6 +1,6 @@
-library get_cli.extensions;
+library sync_cli.extensions;
 
-export 'package:get_cli/core/internationalization.dart' show TranslationExt;
-export 'package:get_cli/extensions/list.dart';
-export 'package:get_cli/extensions/string.dart';
-export 'package:get_cli/extensions/dart_code.dart';
+export 'package:sync_cli/core/internationalization.dart' show TranslationExt;
+export 'package:sync_cli/extensions/list.dart';
+export 'package:sync_cli/extensions/string.dart';
+export 'package:sync_cli/extensions/dart_code.dart';

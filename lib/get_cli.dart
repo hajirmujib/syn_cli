@@ -1,3 +1,3 @@
-export 'package:get_cli/commands/impl/commads_export.dart';
-export 'package:get_cli/core/generator.dart';
-export 'package:get_cli/extensions.dart';
+export 'package:sync_cli/commands/impl/commads_export.dart';
+export 'package:sync_cli/core/generator.dart';
+export 'package:sync_cli/extensions.dart';
