@@ -1,7 +1,8 @@
+import 'package:syn_cli/functions/version/print_get_cli.dart';
+
 import '../../../common/utils/pubspec/pubspec_lock.dart';
 import '../../../core/internationalization.dart';
 import '../../../core/locales.g.dart';
-import '../../../functions/version/print_syn_cli.dart';
 import '../../interface/command.dart';
 
 // ignore_for_file: avoid_print

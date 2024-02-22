@@ -9,7 +9,7 @@ import '../../common/utils/pubspec/pubspec_lock.dart';
 import '../../core/internationalization.dart';
 import '../../core/locales.g.dart';
 import 'check_dev_version.dart';
-import 'print_syn_cli.dart';
+import 'print_get_cli.dart';
 
 void checkForUpdate() async {
   if (!CliConfig.updateIsCheckingToday()) {
