@@ -23,6 +23,7 @@ class InitCommand extends Command {
     result.index == 0
         ? await createInitGetxPattern()
         : await createInitKatekko();
+        
     if (!PubspecUtils.isServerProject) {
       await ShellUtils.pubGet();
     }

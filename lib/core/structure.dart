@@ -10,20 +10,20 @@ import 'locales.g.dart';
 
 class Structure {
   static final Map<String, String> _paths = {
-    'page': Directory(replaceAsExpected(
-                path: '${Directory.current.path} /lib/pages/'))
+    'page': Directory(
+                replaceAsExpected(path: '${Directory.current.path} /lib/src/'))
             .existsSync()
-        ? replaceAsExpected(path: 'lib/pages')
-        : replaceAsExpected(path: 'lib/app/modules'),
-    'widget': replaceAsExpected(path: 'lib/app/widgets/'),
-    'model': replaceAsExpected(path: 'lib/app/data/models'),
+        ? replaceAsExpected(path: 'lib/src')
+        : replaceAsExpected(path: 'lib/src'),
+    'widget': replaceAsExpected(path: 'lib/src/widgets/'),
+    'model': replaceAsExpected(path: 'lib/src/data/models'),
     'init': replaceAsExpected(path: 'lib/'),
     'route': replaceAsExpected(path: 'lib/routes/'),
-    'repository': replaceAsExpected(path: 'lib/app/data/'),
-    'provider': replaceAsExpected(path: 'lib/app/data'),
-    'controller': replaceAsExpected(path: 'lib/app'),
-    'binding': replaceAsExpected(path: 'lib/app'),
-    'view': replaceAsExpected(path: 'lib/app/views/'),
+    'repository': replaceAsExpected(path: 'lib/src/data/'),
+    'provider': replaceAsExpected(path: 'lib/src/data'),
+    'controller': replaceAsExpected(path: 'lib/src'),
+    'binding': replaceAsExpected(path: 'lib/src'),
+    'view': replaceAsExpected(path: 'lib/src/views/'),
     //artekko files
     'screen': replaceAsExpected(path: 'lib/presentation'),
     'controller.binding':
