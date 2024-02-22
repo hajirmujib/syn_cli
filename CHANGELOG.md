@@ -71,14 +71,14 @@
 
 - update README
 - and others improvements
-- add [separator](https://github.com/jonataslaw/sync_cli#separator-file-type)
+- add [separator](https://github.com/jonataslaw/syn_cli#separator-file-type)
 
 ## [1.4.0]
 
 - fix init command on issue #43
 - add internationalization for CLI
 - fix sort routes
-- add option with to controller e view here [more here](https://github.com/jonataslaw/sync_cli#generate-controller-for-model-online)
+- add option with to controller e view here [more here](https://github.com/jonataslaw/syn_cli#generate-controller-for-model-online)
 - add command sort
 - and others improvements
 - fix check update

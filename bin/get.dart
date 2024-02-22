@@ -1,7 +1,7 @@
-import 'package:sync_cli/common/utils/logger/log_utils.dart';
-import 'package:sync_cli/exception_handler/exception_handler.dart';
-import 'package:sync_cli/functions/version/version_update.dart';
-import 'package:sync_cli/sync_cli.dart';
+import 'package:syn_cli/common/utils/logger/log_utils.dart';
+import 'package:syn_cli/exception_handler/exception_handler.dart';
+import 'package:syn_cli/functions/version/version_update.dart';
+import 'package:syn_cli/syn_cli.dart';
 
 Future<void> main(List<String> arguments) async {
   var time = Stopwatch();

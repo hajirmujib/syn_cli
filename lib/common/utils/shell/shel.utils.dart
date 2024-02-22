@@ -35,7 +35,7 @@ class ShellUtils {
     forceUpdate = GetCli.arguments.contains('-f');
     if (!isGit && !forceUpdate) {
       var versionInPubDev =
-          await PubDevApi.getLatestVersionFromPackage('sync_cli');
+          await PubDevApi.getLatestVersionFromPackage('syn_cli');
 
       var versionInstalled = await PubspecLock.getVersionCli(disableLog: true);
 
@@ -46,24 +46,24 @@ class ShellUtils {
       }
     }
 
-    LogService.info('Upgrading sync_cli …');
+    LogService.info('Upgrading syn_cli …');
 
     try {
       if (Platform.script.path.contains('flutter')) {
         if (isGit) {
           await run(
-              'flutter pub global activate -sgit https://github.com/jonataslaw/sync_cli/',
+              'flutter pub global activate -sgit https://github.com/jonataslaw/syn_cli/',
               verbose: true);
         } else {
-          await run('flutter pub global activate sync_cli', verbose: true);
+          await run('flutter pub global activate syn_cli', verbose: true);
         }
       } else {
         if (isGit) {
           await run(
-              'flutter pub global activate -sgit https://github.com/jonataslaw/sync_cli/',
+              'flutter pub global activate -sgit https://github.com/jonataslaw/syn_cli/',
               verbose: true);
         } else {
-          await run('flutter pub global activate sync_cli', verbose: true);
+          await run('flutter pub global activate syn_cli', verbose: true);
         }
       }
       return LogService.success(LocaleKeys.sucess_update_cli.tr);

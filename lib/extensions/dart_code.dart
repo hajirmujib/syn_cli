@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:sync_cli/functions/create/create_single_file.dart';
-import 'package:sync_cli/functions/formatter_dart_file/frommatter_dart_file.dart';
+import 'package:syn_cli/functions/create/create_single_file.dart';
+import 'package:syn_cli/functions/formatter_dart_file/frommatter_dart_file.dart';
 
 import '../exception_handler/exceptions/cli_exception.dart';
 import 'string.dart';

@@ -8,7 +8,7 @@ class CliConfig {
 
   static File getFileConfig() {
     var scriptFile = Platform.script.toFilePath();
-    var path = join(dirname(scriptFile), '.sync_cli.yaml');
+    var path = join(dirname(scriptFile), '.syn_cli.yaml');
     var configFile = File(path);
     if (!configFile.existsSync()) {
       configFile.createSync(recursive: true);

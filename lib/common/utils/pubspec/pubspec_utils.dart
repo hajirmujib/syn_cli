@@ -23,9 +23,9 @@ class PubspecUtils {
   /// separtor
   static final _mapSep = _PubValue<String>(() {
     var yaml = pubSpec.unParsedYaml!;
-    if (yaml.containsKey('sync_cli')) {
-      if ((yaml['sync_cli'] as Map).containsKey('separator')) {
-        return (yaml['sync_cli']['separator'] as String?) ?? '';
+    if (yaml.containsKey('syn_cli')) {
+      if ((yaml['syn_cli'] as Map).containsKey('separator')) {
+        return (yaml['syn_cli']['separator'] as String?) ?? '';
       }
     }
 
@@ -42,9 +42,9 @@ class PubspecUtils {
     () {
       try {
         var yaml = pubSpec.unParsedYaml!;
-        if (yaml.containsKey('sync_cli')) {
-          if ((yaml['sync_cli'] as Map).containsKey('sub_folder')) {
-            return (yaml['sync_cli']['sub_folder'] as bool?);
+        if (yaml.containsKey('syn_cli')) {
+          if ((yaml['syn_cli'] as Map).containsKey('sub_folder')) {
+            return (yaml['syn_cli']['sub_folder'] as bool?);
           }
         }
       } on Exception catch (_) {}

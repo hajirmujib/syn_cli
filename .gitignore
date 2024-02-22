@@ -28,6 +28,6 @@ doc/api/
 .DS_Store
 
 ### extra files
-bin/.sync_cli.yaml
+bin/.syn_cli.yaml
 cristiano_teste/*
 bin/*.exe
