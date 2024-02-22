@@ -1,3 +1,5 @@
+import 'package:syn_cli/commands/impl/create/bloc/bloc.dart';
+
 import 'impl/commads_export.dart';
 import 'interface/command.dart';
 
@@ -5,12 +7,9 @@ final List<Command> commands = [
   CommandParent(
     'create',
     [
-      CreateControllerCommand(),
+      CreateBlocCommand(),
       CreatePageCommand(),
       CreateProjectCommand(),
-      CreateProviderCommand(),
-      CreateScreenCommand(),
-      CreateViewCommand()
     ],
     ['-c'],
   ),

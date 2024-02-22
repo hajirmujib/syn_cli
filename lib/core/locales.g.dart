@@ -45,6 +45,7 @@ class LocaleKeys {
   static const error_unexpected = 'error_unexpected';
   static const example = 'example';
   static const hint_create_controller = 'hint_create_controller';
+  static const hint_create_bloc = 'hint_create_bloc';
   static const hint_create_page = 'hint_create_page';
   static const hint_create_project = 'hint_create_project';
   static const hint_create_provider = 'hint_create_provider';

@@ -15,15 +15,18 @@ class Structure {
             .existsSync()
         ? replaceAsExpected(path: 'lib/src')
         : replaceAsExpected(path: 'lib/src'),
-    'widget': replaceAsExpected(path: 'lib/src/widgets/'),
-    'model': replaceAsExpected(path: 'lib/src/data/models'),
+    'components': replaceAsExpected(path: 'lib/src/components/'),
+    'services': replaceAsExpected(path: 'lib/src/data/remote/'),
+    'requests': replaceAsExpected(path: 'lib/src/data/remote/'),
+    'responses': replaceAsExpected(path: 'lib/src/data/remote/'),
+    'model': replaceAsExpected(path: 'lib/src/data/domain/'),
     'init': replaceAsExpected(path: 'lib/'),
     'route': replaceAsExpected(path: 'lib/routes/'),
     'repository': replaceAsExpected(path: 'lib/src/data/'),
     'provider': replaceAsExpected(path: 'lib/src/data'),
-    'controller': replaceAsExpected(path: 'lib/src'),
+    'bloc': replaceAsExpected(path: 'lib/src'),
     'binding': replaceAsExpected(path: 'lib/src'),
-    'view': replaceAsExpected(path: 'lib/src/views/'),
+    'view': replaceAsExpected(path: 'lib/src/'),
     //artekko files
     'screen': replaceAsExpected(path: 'lib/presentation'),
     'controller.binding':
