@@ -16,7 +16,10 @@ class AppTranslation {
 
 class LocaleKeys {
   LocaleKeys._();
+
+  static const ask_new_module_name = 'ask_new_module_name';
   static const ask_existing_page = 'ask_existing_page';
+  static const ask_existing_module = 'ask_existing_module';
   static const ask_name_to_project = 'ask_name_to_project';
   static const ask_company_domain = 'ask_company_domain';
   static const ask_model_name = 'ask_model_name';
@@ -45,6 +48,9 @@ class LocaleKeys {
   static const error_unexpected = 'error_unexpected';
   static const example = 'example';
   static const hint_create_controller = 'hint_create_controller';
+  static const hint_create_state = 'hint_create_state';
+  static const hint_create_services = 'hint_create_services';
+  static const hint_create_event = 'hint_create_event';
   static const hint_create_bloc = 'hint_create_bloc';
   static const hint_create_page = 'hint_create_page';
   static const hint_create_project = 'hint_create_project';
@@ -53,6 +59,7 @@ class LocaleKeys {
   static const hint_create_view = 'hint_create_view';
   static const hint_generate_locales = 'hint_generate_locales';
   static const hint_generate_model = 'hint_generate_model';
+  static const hint_create_module = 'hint_create_module';
   static const hint_help = 'hint_help';
   static const hint_init = 'hint_init';
   static const hint_install = 'hint_install';
@@ -71,6 +78,8 @@ class LocaleKeys {
   static const options_yes = 'options_yes';
   static const options_no = 'options_no';
   static const optional_parameters = 'optional_parameters';
+
+  static const sucess_module_create = 'sucess_module_create';
   static const sucess_page_create = 'sucess_page_create';
   static const sucess_locale_generate = 'sucess_locale_generate';
   static const sucess_getx_pattern_generated = 'sucess_getx_pattern_generated';

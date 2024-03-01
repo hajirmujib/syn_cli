@@ -10,6 +10,28 @@ import '../../core/structure.dart';
 import '../../samples/interface/sample_interface.dart';
 import '../sorter_imports/sort.dart';
 
+void createFolder(String? folderName) {
+  // Specify the base directory where you want to create the folder
+  Directory baseDirectory = Directory('lib');
+
+  // Create the folder path
+  String folderPath = folderName != null
+      ? '${baseDirectory.path}/$folderName'
+      : baseDirectory.path;
+
+  // Create the Directory object
+  Directory directory = Directory(folderPath);
+
+  // Check if the directory already exists
+  if (!directory.existsSync()) {
+    // If the directory does not exist, create it
+    directory.createSync(recursive: true);
+    print('Folder "$folderName" created successfully.');
+  } else {
+    print('Folder "$folderName" already exists.');
+  }
+}
+
 File handleFileCreate(String name, String command, String on, bool extraFolder,
     Sample sample, String folderName,
     [String sep = '_']) {

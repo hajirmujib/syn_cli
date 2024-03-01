@@ -77,9 +77,7 @@ class CreateScreenCommand extends Command {
         GetViewSample(
           '',
           '${name.pascalCase}Screen',
-          '${name.pascalCase}Controller',
-          controllerImport,
-          isServer,
+          ''
         ),
         '',
         '.');

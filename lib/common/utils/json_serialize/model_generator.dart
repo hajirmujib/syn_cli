@@ -144,8 +144,8 @@ class ModelGenerator {
   DartCode generateUnsafeDart(String rawJson) {
     final jsonRawData = decodeJSON(rawJson);
     final astNode = parse(rawJson, Settings());
-    var warnings =
-        _generateClassDefinition(_rootClassName, jsonRawData, '', astNode);
+    var warnings = _generateClassDefinition(
+        "${_rootClassName}Dto", jsonRawData, '', astNode);
     // after generating all classes, replace the omited similar classes.
     for (var c in allClasses) {
       final fieldsKeys = c.fields.keys;

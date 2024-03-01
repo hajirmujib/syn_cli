@@ -1,6 +1,5 @@
 import 'dart:io';
 
-
 import 'package:dcli/dcli.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as p;
@@ -14,7 +13,6 @@ import '../../../../core/structure.dart';
 import '../../../../exception_handler/exceptions/cli_exception.dart';
 import '../../../../functions/create/create_single_file.dart';
 import '../../../../models/file_model.dart';
-import '../../../../samples/impl/get_provider.dart';
 import '../../../interface/command.dart';
 
 class GenerateModelCommand extends Command {
@@ -36,33 +34,33 @@ class GenerateModelCommand extends Command {
     final classGenerator = ModelGenerator(
         name, containsArg('--private'), containsArg('--withCopy'));
 
-    newFileModel = Structure.model(name, 'model', false, on: onCommand);
+    newFileModel = Structure.model("${name}Dto", 'model', false, on: onCommand);
 
     var dartCode = classGenerator.generateDartClasses(await _jsonRawData);
 
-    var modelPath = '${newFileModel.path}_model.dart';
+    var modelPath = '${newFileModel.path}.dart';
 
     var model = writeFile(modelPath, dartCode.result, overwrite: true);
 
     for (var warning in dartCode.warnings) {
       LogService.info('warning: ${warning.path} ${warning.warning} ');
     }
-    if (!containsArg('--skipProvider')) {
-      var pathSplit = Structure.safeSplitPath(modelPath);
-      pathSplit.removeWhere((element) => element == '.' || element == 'lib');
-      handleFileCreate(
-        name,
-        'provider',
-        onCommand,
-        true,
-        ProviderSample(
-          name,
-          createEndpoints: true,
-          modelPath: Structure.pathToDirImport(model.path),
-        ),
-        'providers',
-      );
-    }
+    // if (!containsArg('--skipProvider')) {
+    //   var pathSplit = Structure.safeSplitPath(modelPath);
+    //   pathSplit.removeWhere((element) => element == '.' || element == 'lib');
+    //   handleFileCreate(
+    //     name,
+    //     'dto',
+    //     onCommand,
+    //     true,
+    //     DtoSample(
+    //       name,
+    //       createEndpoints: true,
+    //       modelPath: Structure.pathToDirImport(model.path),
+    //     ),
+    //     'domain/models',
+    //   );
+    // }
   }
 
   @override

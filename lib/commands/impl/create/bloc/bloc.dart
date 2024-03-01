@@ -4,7 +4,6 @@ import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:syn_cli/samples/impl/get_bloc.dart';
 
-import '../../../../common/utils/pubspec/pubspec_utils.dart';
 import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
 import '../../../../core/structure.dart';
@@ -55,7 +54,10 @@ class CreateBlocCommand extends Command {
 
   Future<void> createController(String name,
       {String withArgument = '', String onCommand = ''}) async {
-    var sample = BlocSample('', name, PubspecUtils.isServerProject);
+    var sample = BlocSample(
+      '',
+      name,
+    );
     if (withArgument.isNotEmpty) {
       if (isURL(withArgument)) {
         var res = await get(Uri.parse(withArgument));

@@ -1,22 +1,25 @@
 import 'package:recase/recase.dart';
+import 'package:syn_cli/common/utils/pubspec/pubspec_utils.dart';
 
 import '../interface/sample_interface.dart';
 
 /// [Sample] file from Module_Controller file creation.
 class BlocSample extends Sample {
   final String _fileName;
-  final bool _isServer;
-  BlocSample(String path, this._fileName, this._isServer,
-      {bool overwrite = false})
+  BlocSample(String path, this._fileName, {bool overwrite = false})
       : super(path, overwrite: overwrite);
 
   @override
-  String get content => flutterController;
+  String get content => flutterBloc;
 
-  String get flutterController => '''import 'package:bloc/bloc.dart';
+  String get flutterBloc => '''import 'package:bloc/bloc.dart';
+import 'package:${PubspecUtils.projectName}/core/domain/models/error_dto.dart';
+import 'package:equatable/equatable.dart';
 
-class ${_fileName.pascalCase}Controller extends Bloc<${_fileName.pascalCase}Event, ${_fileName.pascalCase}State> {
-  //TODO: Implement ${_fileName.pascalCase}Controller
+part '${_fileName.toLowerCase()}_event.dart'; 
+part '${_fileName.toLowerCase()}_state.dart'; 
+  
+class ${_fileName.pascalCase}Bloc extends Bloc<${_fileName.pascalCase}Event, ${_fileName.pascalCase}State> {
   
   var stateData = const ${_fileName.pascalCase}StateData();
 

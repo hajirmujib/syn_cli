@@ -1,7 +1,11 @@
 import 'dart:io';
 
 import 'package:dcli/dcli.dart';
+import 'package:path/path.dart';
 import 'package:recase/recase.dart';
+import 'package:syn_cli/samples/impl/get_bloc.dart';
+import 'package:syn_cli/samples/impl/get_event.dart';
+import 'package:syn_cli/samples/impl/get_state.dart';
 
 import '../../../../common/menu/menu.dart';
 import '../../../../common/utils/logger/log_utils.dart';
@@ -11,9 +15,6 @@ import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
 import '../../../../core/structure.dart';
 import '../../../../functions/create/create_single_file.dart';
-import '../../../../functions/routes/get_add_route.dart';
-import '../../../../samples/impl/get_binding.dart';
-import '../../../../samples/impl/get_controller.dart';
 import '../../../../samples/impl/get_view.dart';
 import '../../../interface/command.dart';
 
@@ -75,58 +76,55 @@ class CreatePageCommand extends Command {
   }
 
   void _writeFiles(String path, String name, {bool overwrite = false}) {
-    var isServer = PubspecUtils.isServerProject;
     var extraFolder = PubspecUtils.extraFolder ?? true;
-    var controllerFile = handleFileCreate(
+
+    var blocDir = handleFileCreate(
       name,
-      'controller',
+      'bloc',
       path,
       extraFolder,
-      ControllerSample(
-        '',
+      BlocSample(
+        'bloc',
         name,
-        isServer,
         overwrite: overwrite,
       ),
-      'controllers',
+      'bloc',
     );
-    var controllerDir = Structure.pathToDirImport(controllerFile.path);
-    var viewFile = handleFileCreate(
+
+    handleFileCreate(
+      name,
+      'event',
+      path,
+      extraFolder,
+      EventSample(
+        'bloc',
+        name,
+        overwrite: overwrite,
+      ),
+      'bloc',
+    );
+    handleFileCreate(
+      name,
+      'state',
+      path,
+      extraFolder,
+      StateSample(
+        'bloc',
+        name,
+        overwrite: overwrite,
+      ),
+      'bloc',
+    );
+
+    handleFileCreate(
       name,
       'view',
       path,
       extraFolder,
-      GetViewSample(
-        '',
-        '${name.pascalCase}View',
-        '${name.pascalCase}Controller',
-        controllerDir,
-        isServer,
-        overwrite: overwrite,
-      ),
-      'views',
-    );
-    var bindingFile = handleFileCreate(
-      name,
-      'binding',
-      path,
-      extraFolder,
-      BindingSample(
-        '',
-        name,
-        '${name.pascalCase}Binding',
-        controllerDir,
-        isServer,
-        overwrite: overwrite,
-      ),
-      'bindings',
+      GetViewSample('', name.pascalCase, basename(blocDir.path)),
+      '',
     );
 
-    addRoute(
-      name,
-      Structure.pathToDirImport(bindingFile.path),
-      Structure.pathToDirImport(viewFile.path),
-    );
     LogService.success(LocaleKeys.sucess_page_create.trArgs([name.pascalCase]));
   }
 

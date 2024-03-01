@@ -19,6 +19,7 @@ Future<void> createInitSynPattern() async {
   if (!isServerProject) {
     await installGet();
   }
+  
   var initialDirs = [
     Directory(Structure.replaceAsExpected(path: 'lib/app/data/')),
   ];

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:recase/recase.dart';
 
-import '../../../../common/utils/pubspec/pubspec_utils.dart';
 import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
 import '../../../../exception_handler/exceptions/cli_exception.dart';
@@ -38,13 +37,7 @@ class CreateViewCommand extends Command {
 
 Future<void> createView(String name,
     {String withArgument = '', String onCommand = ''}) async {
-  var sample = GetViewSample(
-    '',
-    '${name.pascalCase}View',
-    '',
-    '',
-    PubspecUtils.isServerProject,
-  );
+  var sample = GetViewSample('', '${name.pascalCase}Page', '');
   if (withArgument.isNotEmpty) {
     if (isURL(withArgument)) {
       var res = await get(Uri.parse(withArgument));
@@ -67,5 +60,5 @@ Future<void> createView(String name,
     }
   }
 
-  handleFileCreate(name, 'view', onCommand, true, sample, 'views');
+  handleFileCreate(name, 'view', onCommand, true, sample, '');
 }

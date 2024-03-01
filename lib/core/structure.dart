@@ -19,7 +19,7 @@ class Structure {
     'services': replaceAsExpected(path: 'lib/src/data/remote/'),
     'requests': replaceAsExpected(path: 'lib/src/data/remote/'),
     'responses': replaceAsExpected(path: 'lib/src/data/remote/'),
-    'model': replaceAsExpected(path: 'lib/src/data/domain/'),
+    'model': replaceAsExpected(path: 'lib/src/data/domain/models/'),
     'init': replaceAsExpected(path: 'lib/'),
     'route': replaceAsExpected(path: 'lib/routes/'),
     'repository': replaceAsExpected(path: 'lib/src/data/'),
