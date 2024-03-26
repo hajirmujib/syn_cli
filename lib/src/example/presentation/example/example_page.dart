@@ -1,8 +1,7 @@
+import 'package:base_pkg/base_pkg.dart';
 import 'package:bloc_skeleton/src/example/domain/models/post_dto.dart';
 import 'package:bloc_skeleton/src/example/presentation/example/example_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 
 class ExamplePage extends StatelessWidget {
   static const route = '/example';

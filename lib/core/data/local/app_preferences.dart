@@ -1,5 +1,5 @@
+import 'package:base_pkg/base_pkg.dart';
 import 'package:bloc_skeleton/core/utils/pref_extension.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferences {
 

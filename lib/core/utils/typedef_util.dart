@@ -1,5 +1,6 @@
+import 'package:base_pkg/base_pkg.dart';
 import 'package:bloc_skeleton/core/domain/models/error_dto.dart';
-import 'package:either_dart/either.dart';
+
 
 typedef EitherError<T> = Either<ErrorDto, T>;
 

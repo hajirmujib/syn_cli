@@ -10,14 +10,14 @@ FutureOrError<T> callOrError<T>(Future<T> Function() block,) async {
     return Right(await block());
   } on DioError catch (e) {
     switch (e.type) {
-      case DioErrorType.connectionTimeout:
+      case DioErrorType.connectTimeout:
       case DioErrorType.sendTimeout:
       case DioErrorType.receiveTimeout:
         return Left(ErrorDto(
           message: 'Connection timeout',
           errorType: ErrorType.connectionTimeout,
         ));
-      case DioErrorType.badResponse:
+      case DioErrorType.response:
         var statusCode = e.response?.statusCode ?? 0;
         var message = '';
         try {
