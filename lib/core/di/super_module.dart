@@ -15,14 +15,14 @@ abstract class SuperModule {
 
   @singleton
   Dio dio(
-    @Named('base_url') String baseUrl,
-    AuthInterceptor authInterceptor,
-  ) {
+      @Named('base_url') String baseUrl,
+      AuthInterceptor authInterceptor,
+      ) {
     var option = BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: DateTimeUtil.fifteenSeconds),
-      sendTimeout: const Duration(seconds: DateTimeUtil.fifteenSeconds),
-      receiveTimeout: const Duration(seconds: DateTimeUtil.fifteenSeconds),
+      connectTimeout: DateTimeUtil.thirtySeconds,
+      sendTimeout: DateTimeUtil.thirtySeconds,
+      receiveTimeout: DateTimeUtil.thirtySeconds,
     );
 
     var dio = Dio(option);
