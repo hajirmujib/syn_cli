@@ -1,8 +1,7 @@
-import 'package:bloc/bloc.dart';
+import 'package:base_pkg/base_pkg.dart';
 import 'package:bloc_skeleton/core/domain/models/error_dto.dart';
 import 'package:bloc_skeleton/src/example/domain/models/post_dto.dart';
 import 'package:bloc_skeleton/src/example/domain/usecases/get_post_usecase.dart';
-import 'package:equatable/equatable.dart';
 
 part 'example_event.dart';
 

@@ -1,4 +1,6 @@
-import 'package:shared_preferences/shared_preferences.dart';
+
+
+import 'package:base_pkg/base_pkg.dart';
 
 extension PreferencesExtension on SharedPreferences {
   Future<bool> setStringOrClear(String key, String? value) async {

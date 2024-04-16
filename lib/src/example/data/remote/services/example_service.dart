@@ -1,6 +1,6 @@
+import 'package:base_pkg/base_pkg.dart';
+import 'package:base_pkg/base_pkg_duplicate.dart';
 import 'package:bloc_skeleton/src/example/data/remote/responses/post_response.dart';
-import 'package:dio/dio.dart';
-import 'package:retrofit/http.dart';
 
 part 'example_service.g.dart';
 

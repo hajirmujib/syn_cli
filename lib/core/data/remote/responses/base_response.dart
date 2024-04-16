@@ -1,4 +1,6 @@
-import 'package:json_annotation/json_annotation.dart';
+
+
+import 'package:base_pkg/base_pkg.dart';
 
 part 'base_response.g.dart';
 

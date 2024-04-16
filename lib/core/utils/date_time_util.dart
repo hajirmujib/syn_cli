@@ -1,8 +1,11 @@
-import 'package:intl/intl.dart';
+
+
+import 'package:base_pkg/base_pkg.dart';
 
 class DateTimeUtil {
   static const second = 1000;
   static const fifteenSeconds = 15 * second;
+  static const thirtySeconds = 30 * second;
 
   static const formatFull = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   static const formatSimple = "dd MMM yyyy";
