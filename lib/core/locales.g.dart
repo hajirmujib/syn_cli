@@ -20,9 +20,16 @@ class LocaleKeys {
   static const ask_new_module_name = 'ask_new_module_name';
   static const ask_existing_page = 'ask_existing_page';
   static const ask_existing_module = 'ask_existing_module';
+  static const ask_method_http = 'ask_method_http';
+
   static const ask_name_to_project = 'ask_name_to_project';
+  static const ask_name_url = 'ask_name_url';
+  static const ask_name_service = 'ask_name_service';
+
   static const ask_company_domain = 'ask_company_domain';
   static const ask_model_name = 'ask_model_name';
+  static const ask_responnse_name = 'ask_response_name';
+
   static const ask_package_already_installed = 'ask_package_already_installed';
   static const ask_lib_not_empty = 'ask_lib_not_empty';
   static const error_failed_to_connect = 'error_failed_to_connect';
@@ -80,6 +87,10 @@ class LocaleKeys {
   static const optional_parameters = 'optional_parameters';
 
   static const sucess_module_create = 'sucess_module_create';
+  static const sucess_full_api_create = 'sucess_full_api_create';
+
+  static const error_module_not_found = 'error_module_not_found';
+
   static const sucess_page_create = 'sucess_page_create';
   static const sucess_locale_generate = 'sucess_locale_generate';
   static const sucess_getx_pattern_generated = 'sucess_getx_pattern_generated';
@@ -345,10 +356,16 @@ class Locales {
   static const en = {
     'ask_existing_page':
         'The page [%s] already exists, do you want to overwrite it?',
+    'ask_method_http': 'what is the method of the service?',
     'ask_name_to_project': 'what is the name of the project?',
+    'ask_name_url': 'what is the url of the service?',
+    'ask_name_service':
+        'what is the name of the service? (example : getListUser)',
     'ask_company_domain': 'What is your company\'s domain?',
     'ask_model_name':
         'Could not set the model name automatically, which name do you want to use?',
+    'ask_response_name':
+        'Could not set the response name automatically, which name do you want to use?',
     'ask_package_already_installed':
         'package: %s already installed, do you want to update?',
     'ask_lib_not_empty':
@@ -427,6 +444,9 @@ class Locales {
     'sucess_navigation_added': '%s navigation added successfully.',
     'sucess_file_created': 'File: %s created successfully at path: %s',
     'sucess_route_created': '%s route created successfully.',
+    'sucess_full_api_create': 'Full api created successfully',
+    'error_module_not_found':
+        'failed created full api because module not found,\ncreate module and try again'
   };
   static const pt_BR = {
     'ask_existing_page': 'A página [%s] já existe, deseja sobrescrevê-la?',

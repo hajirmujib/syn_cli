@@ -24,7 +24,7 @@ class CreatePageCommand extends Command {
   String get commandName => 'page';
 
   @override
-  List<String> get alias => ['module', '-p', '-m'];
+  List<String> get alias => ['page', '-p', '-m'];
   @override
   Future<void> execute() async {
     var isProject = false;

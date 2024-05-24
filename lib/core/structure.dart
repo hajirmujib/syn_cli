@@ -15,6 +15,11 @@ class Structure {
             .existsSync()
         ? replaceAsExpected(path: 'lib/src')
         : replaceAsExpected(path: 'lib/src'),
+    'module': Directory(
+                replaceAsExpected(path: '${Directory.current.path} /lib/src/'))
+            .existsSync()
+        ? replaceAsExpected(path: 'lib/src')
+        : replaceAsExpected(path: 'lib/src'),
     'components': replaceAsExpected(path: 'lib/src/components/'),
     'services': replaceAsExpected(path: 'lib/src/data/remote/'),
     'requests': replaceAsExpected(path: 'lib/src/data/remote/'),

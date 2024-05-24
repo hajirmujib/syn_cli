@@ -68,7 +68,12 @@ class TypeDefinition {
     return TypeDefinition(type, astNode: astNode, isAmbiguous: isAmbiguous);
   }
 
-  TypeDefinition(this.name, {this.subtype, this.isAmbiguous, Node? astNode}) {
+  TypeDefinition(
+    this.name, {
+    this.subtype,
+    this.isAmbiguous,
+    Node? astNode,
+  }) {
     if (subtype == null) {
       _isPrimitive = isPrimitiveType(name);
       if (name == 'int' && isASTLiteralDouble(astNode)) {
@@ -181,10 +186,12 @@ class Dependency {
 
 class ClassDefinition {
   final String _name;
+  final String _pathFile;
+
   final bool _privateFields;
   final bool? _withCopyConstructor;
   final Map<String, TypeDefinition> fields = <String, TypeDefinition>{};
-
+  final bool _thisResponse;
   String get name => _name;
 
   bool get privateFields => _privateFields;
@@ -203,8 +210,10 @@ class ClassDefinition {
     return dependenciesList;
   }
 
-  ClassDefinition(this._name,
-      [this._privateFields = false, this._withCopyConstructor = false]);
+  ClassDefinition(this._name, this._pathFile,
+      [this._privateFields = false,
+      this._withCopyConstructor = false,
+      this._thisResponse = false]);
 
   @override
   bool operator ==(dynamic other) {
@@ -253,12 +262,29 @@ class ClassDefinition {
   String _generateFieldList({int indentLevel = 1, String delimiter = ';'}) {
     return fields.keys.map((key) {
       final f = fields[key]!;
+
       final fieldName =
           fixFieldName(key, typeDef: f, privateField: privateFields);
+      print(fieldName);
       final sb = StringBuffer();
+      // this for created response with json_annotation
+      if (_thisResponse) {
+        sb.write('\n');
+        sb.write('@JsonKey(name: "$key")');
+      }
+
       sb.write('\t ' * indentLevel);
-      _addTypeDef(f, sb);
-      sb.write(' $fieldName$delimiter');
+      sb.write('final ');
+
+      // Add type definition without null safety if _thisResponse is false
+      if (_thisResponse == false && f.name != 'dynamic') {
+        final typeWithoutNullSafety = f.name!.replaceAll('?', '');
+        sb.write('$typeWithoutNullSafety $fieldName$delimiter');
+      } else {
+        _addTypeDef(f, sb);
+        sb.write(' $fieldName$delimiter');
+      }
+
       return sb.toString();
     }).join('\n');
   }
@@ -287,7 +313,11 @@ class ClassDefinition {
 
   String get _defaultPrivateConstructor {
     final sb = StringBuffer();
-    sb.write('\t$name({');
+    if (_thisResponse) {
+      sb.write('\t$name(');
+    } else {
+      sb.write('\t$name({');
+    }
     var i = 0;
     var len = fields.keys.length - 1;
     for (var key in fields.keys) {
@@ -300,25 +330,34 @@ class ClassDefinition {
         sb.write(', ');
       }
       i++;
+      if (_thisResponse) {
+        sb.write(') \n');
+      } else {
+        sb.write('}) {\n');
+      }
+      for (var key in fields.keys) {
+        final f = fields[key];
+        final publicFieldName =
+            fixFieldName(key, typeDef: f, privateField: false);
+        final privateFieldName =
+            fixFieldName(key, typeDef: f, privateField: true);
+        //sb.write('this.$privateFieldName = $publicFieldName;\n');
+        sb.write('$privateFieldName = $publicFieldName;\n');
+      }
+      if (!_thisResponse) {
+        sb.write('}');
+      }
     }
-    sb.write('}) {\n');
-    for (var key in fields.keys) {
-      final f = fields[key];
-      final publicFieldName =
-          fixFieldName(key, typeDef: f, privateField: false);
-      final privateFieldName =
-          fixFieldName(key, typeDef: f, privateField: true);
-      //sb.write('this.$privateFieldName = $publicFieldName;\n');
-      sb.write('$privateFieldName = $publicFieldName;\n');
-    }
-
-    sb.write('}');
     return sb.toString();
   }
 
   String get _defaultConstructor {
     final sb = StringBuffer();
-    sb.write('\t$name({');
+    if (_thisResponse) {
+      sb.write('\t$name(');
+    } else {
+      sb.write('\t$name({');
+    }
     var i = 0;
     var len = fields.keys.length - 1;
     for (var key in fields.keys) {
@@ -326,14 +365,35 @@ class ClassDefinition {
       final fieldName =
           fixFieldName(key, typeDef: f, privateField: privateFields);
       sb.write('this.$fieldName');
-      //sb.write('$fieldName');
+
+      if (_thisResponse == false) {
+        sb.write('this.$fieldName = ');
+        // Provide default values
+        if (f!.name == 'String?') {
+          sb.write("''");
+        } else if (f.name == 'int?') {
+          sb.write("0");
+        } else if (f.name == 'double?') {
+          sb.write("0.0");
+        } else if (f.name == 'bool?') {
+          sb.write("false");
+        } else if (f.name == 'List') {
+          sb.write("const []");
+        } else {
+          sb.write("null");
+        }
+      }
+
       if (i != len) {
         sb.write(', ');
       }
       i++;
     }
-
-    sb.write('});');
+    if (_thisResponse) {
+      sb.write(');');
+    } else {
+      sb.write('});');
+    }
     return sb.toString();
   }
 
@@ -387,15 +447,14 @@ class ClassDefinition {
     } else {
       if (copyConstructor!) {
         return 'class $name {\n$_fieldList\n\n$_defaultConstructor'
-            '\n\n$_copyConstructor\n\n$_jsonParseFunc\n\n$_jsonGenFunc\n}\n';
+            '\n\n$_copyConstructor}\n';
       } else {
-        return 'class $name {\n$_fieldList\n\n$_defaultConstructor'
-            '\n\n$_jsonParseFunc\n\n$_jsonGenFunc\n}\n';
+        if (_thisResponse) {
+          return 'class $name {\n$_fieldList\n\n$_defaultConstructor}';
+        } else {
+          return 'class $name {\n$_fieldList\n\n$_defaultConstructor}';
+        }
       }
     }
   }
-
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
 }

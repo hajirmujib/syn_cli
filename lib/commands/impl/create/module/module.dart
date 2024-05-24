@@ -188,56 +188,6 @@ class CreateModuleCommand extends Command {
       'data/repository',
     );
 
-    // var controllerFile = handleFileCreate(
-    //   name,
-    //   'controller',
-    //   path,
-    //   extraFolder,
-    //   ControllerSample(
-    //     '',
-    //     name,
-    //     isServer,
-    //     overwrite: overwrite,
-    //   ),
-    //   'controllers',
-    // );
-    // var controllerDir = Structure.pathToDirImport(controllerFile.path);
-    // var viewFile = handleFileCreate(
-    //   name,
-    //   'view',
-    //   path,
-    //   extraFolder,
-    //   GetViewSample(
-    //     '',
-    //     '${name.pascalCase}View',
-    //     '${name.pascalCase}Controller',
-    //     controllerDir,
-    //     isServer,
-    //     overwrite: overwrite,
-    //   ),
-    //   'views',
-    // );
-    // var bindingFile = handleFileCreate(
-    //   name,
-    //   'binding',
-    //   path,
-    //   extraFolder,
-    //   BindingSample(
-    //     '',
-    //     name,
-    //     '${name.pascalCase}Binding',
-    //     controllerDir,
-    //     isServer,
-    //     overwrite: overwrite,
-    //   ),
-    //   'bindings',
-    // );
-
-    // addRoute(
-    //   name,
-    //   Structure.pathToDirImport(bindingFile.path),
-    //   Structure.pathToDirImport(viewFile.path),
-    // );
     LogService.success(
         LocaleKeys.sucess_module_create.trArgs([name.pascalCase]));
   }

@@ -1,3 +1,8 @@
+import 'package:syn_cli/commands/impl/create/full_api/full_api.dart';
+import 'package:syn_cli/commands/impl/create/services/services.dart';
+import 'package:syn_cli/commands/impl/generate/model/request.dart';
+import 'package:syn_cli/commands/impl/generate/model/response.dart';
+
 import 'impl/commads_export.dart';
 import 'interface/command.dart';
 
@@ -8,10 +13,13 @@ final List<Command> commands = [
       CreateBlocCommand(),
       CreateControllerCommand(),
       CreatePageCommand(),
+      CreateModuleCommand(),
       CreateProjectCommand(),
       CreateProviderCommand(),
       CreateScreenCommand(),
-      CreateViewCommand()
+      CreateViewCommand(),
+      CreateServicesCommand(),
+      CreateFullApiCommand(),
     ],
     ['-c'],
   ),
@@ -20,6 +28,8 @@ final List<Command> commands = [
     [
       GenerateLocalesCommand(),
       GenerateModelCommand(),
+      GenerateResponseCommand(),
+      GenerateRequestCommand(),
     ],
     ['-g'],
   ),

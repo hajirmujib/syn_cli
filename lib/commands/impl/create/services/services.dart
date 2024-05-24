@@ -15,14 +15,6 @@ import '../../../../functions/is_url/is_url.dart';
 import '../../../../functions/replace_vars/replace_vars.dart';
 import '../../../interface/command.dart';
 
-/// This command is a controller with the template:
-///```
-///import 'package:get/get.dart';,
-///
-///class NameController extends GetxController {
-///
-///}
-///```
 class CreateServicesCommand extends Command {
   @override
   String? get hint => LocaleKeys.hint_create_services.tr;
@@ -58,6 +50,7 @@ class CreateServicesCommand extends Command {
       '',
       name,
     );
+    
     if (withArgument.isNotEmpty) {
       if (isURL(withArgument)) {
         var res = await get(Uri.parse(withArgument));

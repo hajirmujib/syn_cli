@@ -41,9 +41,33 @@ File handleFileCreate(String name, String command, String on, bool extraFolder,
   } */
   final fileModel = Structure.model(name, command, extraFolder,
       on: on, folderName: folderName);
-  var path = '${fileModel.path}$sep${fileModel.commandName}.dart';
+  var path =
+      '${fileModel.path}$sep${fileModel.commandName}${command == "di" ? "_module" : ""}.dart';
   sample.path = path;
   return sample.create();
+}
+
+Future<String> handleUpdateCreate(
+  String path,
+  String content,
+) async {
+  File file = File(path);
+  print('path $path');
+
+  String fileContent = await file.readAsString();
+  // Step 2: Modify the file content
+  // Find the position of the last '}' in the ExampleService class
+  int lastClosingBracePosition = fileContent.lastIndexOf('}');
+  if (lastClosingBracePosition == -1) {
+    print('No closing brace found in the file.');
+    return '';
+  }
+  // Insert the new line before the last closing brace
+  String updatedContent =
+      '${fileContent.substring(0, lastClosingBracePosition)}\n  $content\n${fileContent.substring(lastClosingBracePosition)}';
+
+  await file.writeAsString(updatedContent);
+  return 'success';
 }
 
 /// Create or edit the contents of a file

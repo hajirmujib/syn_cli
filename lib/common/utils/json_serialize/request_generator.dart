@@ -22,7 +22,7 @@ class Hint {
   Hint(this.path, this.type);
 }
 
-class ModelGenerator {
+class RequestGenerator {
   final String _rootClassName;
   final bool _privateFields;
   final bool? _withCopyConstructor;
@@ -30,7 +30,7 @@ class ModelGenerator {
   final Map<String, String> sameClassMapping = HashMap<String, String>();
   late List<Hint> hints;
 
-  ModelGenerator(this._rootClassName,
+  RequestGenerator(this._rootClassName,
       [this._privateFields = false,
       this._withCopyConstructor,
       List<Hint>? hints]) {
@@ -55,8 +55,8 @@ class ModelGenerator {
     } else {
       final jsonRawData = jsonRawDynamicData as Map;
       final keys = jsonRawData.keys.cast<String>();
-      var classDefinition = ClassDefinition(
-          className, path, _privateFields, _withCopyConstructor);
+      var classDefinition = ClassDefinition(className, _rootClassName,
+          _privateFields, _withCopyConstructor, true);
 
       for (var key in keys) {
         TypeDefinition typeDef;
@@ -68,16 +68,16 @@ class ModelGenerator {
           typeDef = TypeDefinition.fromDynamic(jsonRawData[key], node);
         }
         if (typeDef.name == 'Class') {
-          typeDef.name = "${camelCase(key)}Dto";
+          typeDef.name = "${camelCase(key)}Request";
         }
         if (typeDef.name == 'List' && typeDef.subtype == 'Null') {
           warnings.add(newEmptyListWarn('$path/$key'));
         }
         if (typeDef.subtype != null && typeDef.subtype == 'Class') {
-          typeDef.subtype = "${camelCase(key)}Dto";
+          typeDef.subtype = "${camelCase(key)}Request";
         }
         if (typeDef.name == 'Class?') {
-          typeDef.name = '${"${camelCase(key)}Dto"}?';
+          typeDef.name = '${"${camelCase(key)}Request"}?';
         }
         if (typeDef.isAmbiguous!) {
           warnings.add(newAmbiguousListWarn('$path/$key'));
@@ -93,10 +93,11 @@ class ModelGenerator {
             : similarClass.name;
 
         final currentClassName = PubspecUtils.nullSafeSupport
-            ? '${classDefinition.name}?'
+            ? ' ${classDefinition.name}?'
             : classDefinition.name;
 
-        sameClassMapping["${currentClassName}Dto"] = "${similarClassName}Dto";
+        sameClassMapping["${currentClassName}Request"] =
+            "${similarClassName}Request";
       } else {
         allClasses.add(classDefinition);
       }
@@ -114,22 +115,22 @@ class ModelGenerator {
             if (!dependency.typeDef.isAmbiguous!) {
               var mergeWithWarning = mergeObjectList(
                   jsonRawData[dependency.name] as List,
-                  '$path/${dependency.name}Dto');
+                  '$path/${dependency.name}Request');
               toAnalyze = mergeWithWarning.result;
               warnings.addAll(mergeWithWarning.warnings);
             } else {
               toAnalyze = jsonRawData[dependency.name][0];
             }
             final node = navigateNode(astNode, dependency.name);
-            warns = _generateClassDefinition("${dependency.className}Dto",
-                toAnalyze, '$path/${dependency.name}Dto', node);
+            warns = _generateClassDefinition("${dependency.className}Request",
+                toAnalyze, '$path/${dependency.name}Request', node);
           }
         } else {
           final node = navigateNode(astNode, dependency.name);
           warns = _generateClassDefinition(
-              "${dependency.className}Dto",
+              "${dependency.className}Request",
               jsonRawData[dependency.name],
-              '$path/${dependency.name}Dto',
+              '$path/${dependency.name}Request',
               node);
         }
         if (warns != null) {
@@ -144,11 +145,11 @@ class ModelGenerator {
   /// in a single string. The [rawJson] param is assumed to be a properly
   /// formatted JSON string. The dart code is not validated so invalid dart code
   /// might be returned
-  DartCode generateUnsafeDart(String rawJson) {
+  DartCode generateUnsafeDart(String rawJson, {String header = ''}) {
     final jsonRawData = decodeJSON(rawJson);
     final astNode = parse(rawJson, Settings());
     var warnings = _generateClassDefinition(
-        "${_rootClassName}Dto", jsonRawData, '', astNode);
+        "${_rootClassName}Request", jsonRawData, '', astNode);
     // after generating all classes, replace the omited similar classes.
     for (var c in allClasses) {
       final fieldsKeys = c.fields.keys;
@@ -173,15 +174,17 @@ class ModelGenerator {
         }
       }
     }
-    return DartCode(allClasses.map((c) => c.toString()).join('\n'), warnings);
+    // Add the header to the generated code
+    final code = header + allClasses.map((c) => c.toString()).join('\n');
+    return DartCode(code, warnings);
   }
 
   /// generateDartClasses will generate all classes and append one after another
   /// in a single string. The [rawJson] param is assumed to be a properly
   /// formatted JSON string. If the generated dart is invalid it will throw
   /// an error.
-  DartCode generateDartClasses(String rawJson) {
-    final unsafeDartCode = generateUnsafeDart(rawJson);
+  DartCode generateDartClasses(String rawJson, {String header = ''}) {
+    final unsafeDartCode = generateUnsafeDart(rawJson, header: header);
     final formatter = DartFormatter();
     return DartCode(
         formatter.format(unsafeDartCode.code), unsafeDartCode.warnings);
