@@ -6,6 +6,7 @@ import 'package:recase/recase.dart';
 import 'package:syn_cli/samples/impl/get_bloc.dart';
 import 'package:syn_cli/samples/impl/get_di.dart';
 import 'package:syn_cli/samples/impl/get_event.dart';
+import 'package:syn_cli/samples/impl/get_mapper.dart';
 import 'package:syn_cli/samples/impl/get_repository.dart';
 import 'package:syn_cli/samples/impl/get_repository_impl.dart';
 import 'package:syn_cli/samples/impl/get_services.dart';
@@ -161,7 +162,18 @@ class CreateModuleCommand extends Command {
       ),
       'di',
     );
-
+    handleFileCreate(
+      name,
+      'mapper',
+      path,
+      extraFolder,
+      MapperSample(
+        'domain/mappers',
+        name,
+        overwrite: overwrite,
+      ),
+      'domain/mappers',
+    );
     handleFileCreate(
       name,
       'repository',

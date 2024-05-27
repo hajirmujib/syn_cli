@@ -26,9 +26,10 @@ void createFolder(String? folderName) {
   if (!directory.existsSync()) {
     // If the directory does not exist, create it
     directory.createSync(recursive: true);
-    print('Folder "$folderName" created successfully.');
+
+    LogService.success('Folder "$folderName" created successfully.');
   } else {
-    print('Folder "$folderName" already exists.');
+    LogService.success('Folder "$folderName" already exists.');
   }
 }
 
@@ -47,24 +48,26 @@ File handleFileCreate(String name, String command, String on, bool extraFolder,
   return sample.create();
 }
 
-Future<String> handleUpdateCreate(
-  String path,
-  String content,
-) async {
+Future<String> handleUpdateCreate(String path, String content,
+    {bool isEndFile = false}) async {
   File file = File(path);
-  print('path $path');
 
   String fileContent = await file.readAsString();
-  // Step 2: Modify the file content
-  // Find the position of the last '}' in the ExampleService class
-  int lastClosingBracePosition = fileContent.lastIndexOf('}');
-  if (lastClosingBracePosition == -1) {
-    print('No closing brace found in the file.');
-    return '';
+  String updatedContent = '';
+  if (!isEndFile) {
+// Step 2: Modify the file content
+    // Find the position of the last '}' in the ExampleService class
+    int lastClosingBracePosition = fileContent.lastIndexOf('}');
+    if (lastClosingBracePosition == -1) {
+      print('No closing brace found in the file.');
+      return '';
+    }
+    // Insert the new line before the last closing brace
+    updatedContent =
+        '${fileContent.substring(0, lastClosingBracePosition)}\n  $content\n${fileContent.substring(lastClosingBracePosition)}';
+  } else {
+    updatedContent = "$updatedContent\n$content";
   }
-  // Insert the new line before the last closing brace
-  String updatedContent =
-      '${fileContent.substring(0, lastClosingBracePosition)}\n  $content\n${fileContent.substring(lastClosingBracePosition)}';
 
   await file.writeAsString(updatedContent);
   return 'success';

@@ -45,7 +45,7 @@ class CreateFullApiCommand extends Command {
     if (GetCli.arguments[0] == 'create' || GetCli.arguments[0] == '-c') {
       isProject = GetCli.arguments[1].split(':').first == 'project';
     }
-    print('argument : ${GetCli.arguments.toString()}');
+
     var name = onCommand;
 //[-d, -s, -res, -repo, -m, -u]
     // Define the map of flags and their corresponding actions
@@ -106,6 +106,12 @@ class CreateFullApiCommand extends Command {
           // Call the execute method to generate the response
           await generateDtoCommand.execute(nameResponse: _nameResponse);
         }
+      }
+      String pathMapper = 'lib/src/$name/domain/mappers/${name}_mapper.dart';
+      var isExistMapper = await checkForFileAlreadyExists(pathMapper);
+
+      if (_withMapper && isExistMapper) {
+        _updateMapper(pathMapper, name);
       }
 
       // //update repository
@@ -249,6 +255,17 @@ class CreateFullApiCommand extends Command {
     handleUpdateCreate(path, content);
   }
 
+  Future _updateMapper(String path, String name) async {
+    final file = File(
+        "lib/src/$name/data/remote/responses/${_nameResponse.toLowerCase()}_response.dart");
+    final fileContent = await file.readAsString();
+    String formattedClasses = formatClassDefinitions(fileContent);
+
+    var content = generateDartMapperClass(formattedClasses, _nameResponse);
+
+    handleUpdateCreate(path, content, isEndFile: true);
+  }
+
   String convertQueryParameters(String input) {
     // Regular expression to match the pattern @Query('...') type? variable,
     final RegExp regex = RegExp(r"@Query\('.*'\)\s*(\w+\??)\s+(\w+),");
@@ -290,6 +307,229 @@ class CreateFullApiCommand extends Command {
     // Join the parameters with commas
     return parameters.join(',');
   }
+
+//this convert response to dto
+  String generateDartMapperClass(String classSource, String responseName) {
+    print(classSource);
+    final fieldRegex = RegExp(r'final\s+((?:List<[\w<>?]+>|\w+)\??)\s+(\w+);');
+    var dartCode = '';
+
+    var responseClassName = '${ReCase(responseName).pascalCase}Response';
+    var dtoClassName = '${ReCase(responseName).pascalCase}Dto';
+    var extensionName = '${ReCase(responseName).pascalCase}Ext';
+
+    dartCode = 'extension $extensionName on $responseClassName? {\n';
+    dartCode += '  $dtoClassName toDto() {\n';
+    dartCode += '    return $dtoClassName(\n';
+
+    final classRegex = RegExp(r'class\s+(\w+)\s+\{([^}]+)\}');
+    var classes = <String, String>{};
+    for (var match in classRegex.allMatches(classSource)) {
+      classes[match.group(1)!] = match.group(2)!;
+    }
+
+    var mainClassContent = classes[responseClassName];
+    if (mainClassContent == null) {
+      throw Exception('Main response class not found in source. ');
+    }
+
+    var processedFields = <String>{};
+
+    for (var match in fieldRegex.allMatches(mainClassContent)) {
+      var fieldType = match.group(1)!;
+      var fieldName = match.group(2)!;
+      var camelCaseKey = ReCase(fieldName).camelCase;
+      var defaultValue = getDefaultValue(fieldType);
+
+      if (fieldType.startsWith('List<')) {
+        var elementType = fieldType.substring(
+            5,
+            fieldType.length -
+                2); // Extract the element type from List<elementType>
+        var dtoElementType = elementType.replaceAll('Response', 'Dto');
+        dartCode +=
+            '''      $camelCaseKey: this?.$camelCaseKey?.map((${camelCaseKey.camelCase}) => $dtoElementType(
+${generateNestedMapperCode(elementType, classSource, camelCaseKey.camelCase)}
+      )).toList() ?? $defaultValue,\n''';
+        processedFields.add(fieldName);
+      } else if (fieldType.endsWith('Response')) {
+        var dtoType = fieldType.replaceAll('Response', 'Dto');
+        dartCode +=
+            '      $camelCaseKey: this?.$camelCaseKey?.$dtoType() ?? $defaultValue,\n';
+        processedFields.add(fieldName);
+      } else {
+        if (!processedFields.contains(fieldName)) {
+          dartCode +=
+              '      $camelCaseKey: this?.$camelCaseKey ?? $defaultValue,\n';
+        }
+      }
+    }
+
+    dartCode += '    );\n  }\n}';
+
+    return dartCode;
+  }
+
+  String generateNestedMapperCode(
+      String elementType, String classSource, String mapperField) {
+    final nestedClassRegex =
+        RegExp(r'class\s+' + elementType + r'\s+\{([^}]+)\}', multiLine: true);
+    var nestedCode = '';
+
+    if (nestedClassRegex.hasMatch(classSource)) {
+      final classBody = nestedClassRegex.firstMatch(classSource)!.group(1)!;
+      final nestedFieldRegex =
+          RegExp(r'final\s+((?:List<[\w<>?]+>|\w+)\??)\s+(\w+);');
+
+      for (var match in nestedFieldRegex.allMatches(classBody)) {
+        var fieldType = match.group(1)!;
+        var fieldName = match.group(2)!;
+        var camelCaseKey = ReCase(fieldName).camelCase;
+        var defaultValue = getDefaultValue(fieldType);
+
+        if (fieldType.startsWith('List<')) {
+          var nestedElementType = fieldType.substring(5, fieldType.length - 2);
+          var nestedDtoElementType =
+              nestedElementType.replaceAll('Response', 'Dto');
+          nestedCode +=
+              '''      $camelCaseKey: $mapperField.$camelCaseKey?.map((${camelCaseKey.camelCase}) => $nestedDtoElementType(
+${generateNestedMapperCode(nestedElementType, classSource, camelCaseKey.camelCase)}
+        )).toList() ?? $defaultValue,\n''';
+        } else if (fieldType.endsWith('Response')) {
+          var nestedDtoType = fieldType.replaceAll('Response', 'Dto');
+          nestedCode +=
+              '      $camelCaseKey: $mapperField.$camelCaseKey?.$nestedDtoType() ?? $defaultValue,\n';
+        } else {
+          nestedCode +=
+              '      $camelCaseKey: $mapperField.$camelCaseKey ?? $defaultValue,\n';
+        }
+      }
+    }
+
+    return nestedCode;
+  }
+
+  String getDefaultValue(String fieldType) {
+    if (fieldType.startsWith('List<')) {
+      return 'const []';
+    } else if (fieldType == 'int' || fieldType == 'int?') {
+      return '0';
+    } else if (fieldType == 'double' || fieldType == 'double?') {
+      return '0.0';
+    } else if (fieldType == 'bool' || fieldType == 'bool?') {
+      return 'false';
+    } else {
+      return "''";
+    }
+  }
+
+  String getListElementType(List<dynamic> list) {
+    if (list.isEmpty) {
+      return 'dynamic';
+    } else {
+      return list.first.runtimeType.toString();
+    }
+  }
+
+  bool isCustomClass(dynamic value) {
+    return value != null && value.runtimeType.toString().endsWith('Response');
+  }
+
+  Map<String, dynamic> convertClassToMap(String classDefinition) {
+    final className = extractClassName(classDefinition);
+    final fields = extractFields(classDefinition);
+    // print('classDefinition : $classDefinition || $className||$fields');
+    return {
+      className: fields,
+    };
+  }
+
+  String extractClassName(String classDefinition) {
+    final classNameRegex = RegExp(r'class\s+(\w+)\s+\{');
+    return classNameRegex.firstMatch(classDefinition)?.group(1) ?? '';
+  }
+
+  Map<String, dynamic> extractFields(String classDefinition) {
+    final fields = <String, dynamic>{};
+    final fieldRegex = RegExp(r'final\s+(\w+\??)\s+(\w+);');
+
+    for (var match in fieldRegex.allMatches(classDefinition)) {
+      final type = match.group(1) ?? 'dynamic';
+      final name = match.group(2) ?? '';
+      print('type : $type');
+      if (type.endsWith('Dto') || type.endsWith('Response')) {
+        fields[name] = <String, dynamic>{}; // Placeholder for custom class
+      } else if (type.startsWith('List<')) {
+        final elementType = type.substring(5, type.length - 1);
+        if (elementType.endsWith('Dto') || elementType.endsWith('Response')) {
+          fields[name] = [
+            <String, dynamic>{}
+          ]; // Placeholder for list of custom class
+        } else {
+          fields[name] = []; // Placeholder for list of basic type
+        }
+      } else {
+        fields[name] = getDefaultValueForType(type);
+      }
+    }
+
+    return fields;
+  }
+
+  dynamic getDefaultValueForType(String type) {
+    switch (type) {
+      case 'String':
+      case 'String?':
+        return '';
+      case 'int':
+      case 'int?':
+        return 0;
+      case 'double':
+      case 'double?':
+        return 0.0;
+      case 'bool':
+      case 'bool?':
+        return false;
+      default:
+        return null;
+    }
+  }
+
+  List<String> extractClassDefinitions(String fileContent) {
+    final classRegex = RegExp(r'class\s+\w+\s*\{[^}]+\}', multiLine: true);
+    return classRegex
+        .allMatches(fileContent)
+        .map((match) => match.group(0)!)
+        .toList();
+  }
+
+  String formatClassDefinition(String classDefinition) {
+    final fieldRegex = RegExp(r'final\s+([\w<>\?]+)\s+(\w+);');
+    final classNameRegex = RegExp(r'class\s+(\w+)');
+
+    var classNameMatch = classNameRegex.firstMatch(classDefinition);
+    if (classNameMatch == null) {
+      return '';
+    }
+    var className = classNameMatch.group(1)!;
+
+    var formattedClass = 'class $className {\n';
+
+    for (var match in fieldRegex.allMatches(classDefinition)) {
+      var fieldType = match.group(1)!;
+      var fieldName = match.group(2)!;
+      formattedClass += '  final $fieldType $fieldName;\n';
+    }
+
+    formattedClass += '}\n';
+    return formattedClass;
+  }
+
+  String formatClassDefinitions(String fileContent) {
+    var classDefinitions = extractClassDefinitions(fileContent);
+    return classDefinitions.map(formatClassDefinition).join('\n');
+  }
+//end of convert response to dto
 
   String _toCamelCase(String text) {
     List<String> parts = text.split('_');

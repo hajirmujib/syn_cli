@@ -1,9 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'detail_user_response.g.dart';
+part 'contoh_response.g.dart';
 
 @JsonSerializable()
-class DetailUserResponse {
+class ContohResponse {
   @JsonKey(name: "id")
   final String? id;
 
@@ -28,7 +28,7 @@ class DetailUserResponse {
   @JsonKey(name: "total_sub_area")
   final int? totalSubArea;
 
-  DetailUserResponse(this.id, this.name, this.subAreas, this.createdAt,
+  ContohResponse(this.id, this.name, this.subAreas, this.createdAt,
       this.projectId, this.updatedAt, this.projectName, this.totalSubArea);
 }
 

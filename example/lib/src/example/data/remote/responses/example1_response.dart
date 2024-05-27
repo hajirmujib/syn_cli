@@ -1,9 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'login_data_response.g.dart';
+part 'example1_response.g.dart';
 
 @JsonSerializable()
-class LoginDataResponse {
+class Example1Response {
   @JsonKey(name: "id")
   final String? id;
 
@@ -28,7 +28,7 @@ class LoginDataResponse {
   @JsonKey(name: "total_sub_area")
   final int? totalSubArea;
 
-  LoginDataResponse(this.id, this.name, this.subAreas, this.createdAt,
+  Example1Response(this.id, this.name, this.subAreas, this.createdAt,
       this.projectId, this.updatedAt, this.projectName, this.totalSubArea);
 }
 

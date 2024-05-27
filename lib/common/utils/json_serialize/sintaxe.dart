@@ -263,9 +263,9 @@ class ClassDefinition {
     return fields.keys.map((key) {
       final f = fields[key]!;
 
-      final fieldName =
+      var fieldName =
           fixFieldName(key, typeDef: f, privateField: privateFields);
-      print(fieldName);
+
       final sb = StringBuffer();
       // this for created response with json_annotation
       if (_thisResponse) {
@@ -279,7 +279,17 @@ class ClassDefinition {
       // Add type definition without null safety if _thisResponse is false
       if (_thisResponse == false && f.name != 'dynamic') {
         final typeWithoutNullSafety = f.name!.replaceAll('?', '');
-        sb.write('$typeWithoutNullSafety $fieldName$delimiter');
+        var newTypeDef = TypeDefinition(
+          typeWithoutNullSafety,
+          subtype: f.subtype,
+          isAmbiguous: f.isAmbiguous,
+        );
+        _addTypeDef(newTypeDef, sb);
+        fieldName =
+            fixFieldName(key, typeDef: newTypeDef, privateField: privateFields);
+
+        sb.write(' $fieldName$delimiter');
+        // sb.write('$typeWithoutNullSafety $fieldName$delimiter');
       } else {
         _addTypeDef(f, sb);
         sb.write(' $fieldName$delimiter');
@@ -341,7 +351,7 @@ class ClassDefinition {
             fixFieldName(key, typeDef: f, privateField: false);
         final privateFieldName =
             fixFieldName(key, typeDef: f, privateField: true);
-        //sb.write('this.$privateFieldName = $publicFieldName;\n');
+
         sb.write('$privateFieldName = $publicFieldName;\n');
       }
       if (!_thisResponse) {
@@ -364,10 +374,11 @@ class ClassDefinition {
       final f = fields[key];
       final fieldName =
           fixFieldName(key, typeDef: f, privateField: privateFields);
-      sb.write('this.$fieldName');
 
       if (_thisResponse == false) {
         sb.write('this.$fieldName = ');
+        
+
         // Provide default values
         if (f!.name == 'String?') {
           sb.write("''");
@@ -382,6 +393,8 @@ class ClassDefinition {
         } else {
           sb.write("null");
         }
+      } else {
+        sb.write('this.$fieldName');
       }
 
       if (i != len) {
