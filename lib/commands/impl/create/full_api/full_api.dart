@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dcli/dcli.dart';
 import 'package:recase/recase.dart';
+import 'package:syn_cli/commands/impl/create/usecase/usecase.dart';
 import 'package:syn_cli/commands/impl/generate/model/model.dart';
 import 'package:syn_cli/commands/impl/generate/model/response.dart';
 import 'package:syn_cli/common/menu/menu.dart';
@@ -69,6 +70,7 @@ class CreateFullApiCommand extends Command {
         var result = ask(LocaleKeys.ask_responnse_name.tr, required: false);
         _nameResponse = result.pascalCase;
       }
+
       if (_withService) {
         //init path service and create service
         String pathService =
@@ -76,6 +78,7 @@ class CreateFullApiCommand extends Command {
         // //update service
         await _writeService(pathService);
       }
+
       if (_withRepo) {
         //init path respository and create it
         String pathRepository =
@@ -93,6 +96,7 @@ class CreateFullApiCommand extends Command {
           }
         }
       }
+
       if (_withResponse) {
         if (_nameResponse.isNotEmpty) {
           // Create an instance of GenerateResponseCommand
@@ -107,13 +111,30 @@ class CreateFullApiCommand extends Command {
           await generateDtoCommand.execute(nameResponse: _nameResponse);
         }
       }
+
       String pathMapper = 'lib/src/$name/domain/mappers/${name}_mapper.dart';
       var isExistMapper = await checkForFileAlreadyExists(pathMapper);
 
       if (_withMapper && isExistMapper) {
         _updateMapper(pathMapper, name);
-      }
+      } else {}
 
+      String pathUseCase =
+          'lib/src/$name/domain/usecase/${_nameResponse.replaceAll('Response', '').toLowerCase()}_usecase.dart';
+
+      if (_withUseCase) {
+        String param = convertQueryParameters(parameterFormatted);
+
+        var generateUseCaseCommand = CreateUseCaseCommand();
+        generateUseCaseCommand.execute(
+          nameRepository: onCommand.pascalCase,
+          parameter: param,
+          nameDto: "${_nameResponse.replaceAll("Response", '')}Dto",
+          nameUsecase: _nameResponse.replaceAll("Response", ''),
+          nameFuncRepo: name.camelCase,
+          isPagination: _output == OutputTypeEnum.pagination ? true : false,
+        );
+      }
       // //update repository
       // _writeContent(path);
       LogService.success(
@@ -140,7 +161,6 @@ class CreateFullApiCommand extends Command {
     //     Structure.model(name, 'module', true, on: onCommand, folderName: name);
     // var pathSplit = Structure.safeSplitPath(newFileModel.path!);
 
-    print('path $defaultPath');
     File file = File(defaultPath);
     if (!await file.exists()) {
       return false;
@@ -257,7 +277,7 @@ class CreateFullApiCommand extends Command {
 
   Future _updateMapper(String path, String name) async {
     final file = File(
-        "lib/src/$name/data/remote/responses/${_nameResponse.toLowerCase()}_response.dart");
+        "lib/src/$name/data/remote/responses/${_nameResponse.snakeCase}_response.dart");
     final fileContent = await file.readAsString();
     String formattedClasses = formatClassDefinitions(fileContent);
 
@@ -310,7 +330,6 @@ class CreateFullApiCommand extends Command {
 
 //this convert response to dto
   String generateDartMapperClass(String classSource, String responseName) {
-    print(classSource);
     final fieldRegex = RegExp(r'final\s+((?:List<[\w<>?]+>|\w+)\??)\s+(\w+);');
     var dartCode = '';
 
@@ -456,7 +475,7 @@ ${generateNestedMapperCode(nestedElementType, classSource, camelCaseKey.camelCas
     for (var match in fieldRegex.allMatches(classDefinition)) {
       final type = match.group(1) ?? 'dynamic';
       final name = match.group(2) ?? '';
-      print('type : $type');
+
       if (type.endsWith('Dto') || type.endsWith('Response')) {
         fields[name] = <String, dynamic>{}; // Placeholder for custom class
       } else if (type.startsWith('List<')) {

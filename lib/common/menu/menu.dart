@@ -16,7 +16,7 @@ class Menu {
 
     // final answer = dialog.ask();
     // final result = answer['result'] as String;
-    print("");
+
     final result = menu(title, options: choices, defaultOption: choices[0]);
     final index = choices.indexOf(result);
 

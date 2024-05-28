@@ -5,8 +5,7 @@ import '../interface/sample_interface.dart';
 /// [Sample] file from Module_Controller file creation.
 class DiSample extends Sample {
   final String _fileName;
-  DiSample(String path, this._fileName, {bool overwrite = false})
-      : super(path, overwrite: overwrite);
+  DiSample(super.path, this._fileName, {super.overwrite});
 
   @override
   String get content => flutterDi;
@@ -21,10 +20,10 @@ import '../data/repository/${_fileName.toLowerCase()}_repository_impl.dart';
 @module
 abstract class ${_fileName.pascalCase}DiModule {
   @singleton
-  ${_fileName.pascalCase}Service ${_fileName.toLowerCase()}Service(Dio dio) => ${_fileName.pascalCase}Service(dio);
+  ${_fileName.pascalCase}Service ${_fileName.replaceAll('_', '').toLowerCase()}Service(Dio dio) => ${_fileName.pascalCase}Service(dio);
 
   @Singleton(as: ${_fileName.pascalCase}Repository)
-  ${_fileName.pascalCase}RepositoryImpl get ${_fileName.toLowerCase()}Repository;
+  ${_fileName.pascalCase}RepositoryImpl get ${_fileName.replaceAll('_', '').toLowerCase()}Repository;
 }
 
 ''';

@@ -40,7 +40,7 @@ class GenerateResponseCommand extends Command {
         Structure.model("${name}Response", 'response', false, on: onCommand);
 
     var modelPath = '${newFileModel.path}.dart';
-    print(newFileModel.path);
+
     var pathSplit = Structure.safeSplitPath(modelPath);
 
     pathSplit.removeWhere((element) => element == '.' || element == 'lib');

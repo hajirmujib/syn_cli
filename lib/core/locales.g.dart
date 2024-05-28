@@ -19,6 +19,8 @@ class LocaleKeys {
 
   static const ask_new_module_name = 'ask_new_module_name';
   static const ask_existing_page = 'ask_existing_page';
+  static const ask_existing_usecase = 'ask_existing_usecase';
+
   static const ask_existing_module = 'ask_existing_module';
   static const ask_method_http = 'ask_method_http';
 
@@ -356,6 +358,10 @@ class Locales {
   static const en = {
     'ask_existing_page':
         'The page [%s] already exists, do you want to overwrite it?',
+    'ask_existing_usecase':
+        'The usecase [%s] already exists, do you want to overwrite it?',
+    'ask_existing_module':
+        'The module [%s] already exists, do you want to overwrite it?',
     'ask_method_http': 'what is the method of the service?',
     'ask_name_to_project': 'what is the name of the project?',
     'ask_name_url': 'what is the url of the service?',
@@ -445,6 +451,7 @@ class Locales {
     'sucess_file_created': 'File: %s created successfully at path: %s',
     'sucess_route_created': '%s route created successfully.',
     'sucess_full_api_create': 'Full api created successfully',
+    'sucess_module_create': 'Module created successfullys',
     'error_module_not_found':
         'failed created full api because module not found,\ncreate module and try again'
   };

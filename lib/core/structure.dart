@@ -25,6 +25,8 @@ class Structure {
     'requests': replaceAsExpected(path: 'lib/src/data/remote/'),
     'responses': replaceAsExpected(path: 'lib/src/data/remote/'),
     'model': replaceAsExpected(path: 'lib/src/data/domain/models/'),
+    'usecase': replaceAsExpected(path: 'lib/src/data/domain/usecase/'),
+
     'init': replaceAsExpected(path: 'lib/'),
     'route': replaceAsExpected(path: 'lib/routes/'),
     'repository': replaceAsExpected(path: 'lib/src/data/'),

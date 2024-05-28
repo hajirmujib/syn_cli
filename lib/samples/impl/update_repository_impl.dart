@@ -24,7 +24,7 @@ class UpdateRepositoryImplSample extends Sample {
     int? size = 10,
     String? keyword,
   }""" : '\n$_parameter'}){
-    return callOrError(() => _${_name.toLowerCase()}Service.$_serviceName(
+    return callOrError(() => _${_name.replaceAll('_', '').toLowerCase()}Service.$_serviceName(
       ${typeOutput == OutputTypeEnum.pagination ? """page:page,
       size:size,
       keywoard:keyword,

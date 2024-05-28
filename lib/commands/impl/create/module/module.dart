@@ -147,7 +147,7 @@ class CreateModuleCommand extends Command {
     createFolder('src/$name/data/remote/responses');
     createFolder('src/$name/domain/mappers');
     createFolder('src/$name/domain/models');
-    createFolder('src/$name/domain/usecases');
+    createFolder('src/$name/domain/usecase');
     createFolder('src/$name/domain/enums');
 
     handleFileCreate(
