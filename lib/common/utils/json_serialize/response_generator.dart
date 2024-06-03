@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:dart_style/dart_style.dart';
+import 'package:syn_cli/enum/key_value_dto.dart';
 
 import '../pubspec/pubspec_utils.dart';
 import 'helpers.dart';
@@ -45,20 +46,25 @@ class ResponseGenerator {
     return hints.firstWhereOrNull((h) => h.path == path);
   }
 
+//menyimpan dan memeriksa class yang sudah ada
+  List<KeyValueDto> classSimillarResponse = [];
   List<Warning> _generateClassDefinition(String className,
       dynamic jsonRawDynamicData, String path, Node? astNode) {
     var warnings = <Warning>[];
+
     if (jsonRawDynamicData is List) {
-      // if first element is an array, start in the first element.
       final node = navigateNode(astNode, '0');
       _generateClassDefinition(className, jsonRawDynamicData[0], path, node);
     } else {
       final jsonRawData = jsonRawDynamicData as Map;
+
       final keys = jsonRawData.keys.cast<String>();
       var classDefinition = ClassDefinition(className, _rootClassName,
           _privateFields, _withCopyConstructor, true);
 
-      for (var key in keys) {
+      for (int i = 0; i < keys.length; i++) {
+        var key = keys.toList()[i];
+
         TypeDefinition typeDef;
         final hint = _hintForPath('$path/$key');
         final node = navigateNode(astNode, key);
@@ -67,6 +73,7 @@ class ResponseGenerator {
         } else {
           typeDef = TypeDefinition.fromDynamic(jsonRawData[key], node);
         }
+
         if (typeDef.name == 'Class') {
           typeDef.name = "${camelCase(key)}Response";
         }
@@ -85,32 +92,24 @@ class ResponseGenerator {
         classDefinition.addField(key, typeDef);
       }
 
-      final similarClass =
-          allClasses.firstWhereOrNull((cd) => cd == classDefinition);
+      // Check for existing class with the same fields
+      var similarClass = _findClassWithSameFields(classDefinition);
+
       if (similarClass != null) {
-        final similarClassName = PubspecUtils.nullSafeSupport
-            ? '${similarClass.name}?'
-            : similarClass.name;
+        classSimillarResponse.add(
+            KeyValueDto(key: similarClass.name, value: classDefinition.name));
 
-        final currentClassName = PubspecUtils.nullSafeSupport
-            ? ' ${classDefinition.name}?'
-            : classDefinition.name;
-
-        sameClassMapping["${currentClassName}Response"] =
-            "${similarClassName}Response";
+        classDefinition = similarClass;
       } else {
         allClasses.add(classDefinition);
       }
+
       final dependencies = classDefinition.dependencies;
 
       for (var dependency in dependencies) {
         List<Warning>? warns;
         if (dependency.typeDef.name == 'List') {
-          // only generate dependency class if the array is not empty
           if ((jsonRawData[dependency.name] as List).isNotEmpty) {
-            // when list has ambiguous values, take the first one,
-            // otherwise merge all objects
-            // into a single one
             dynamic toAnalyze;
             if (!dependency.typeDef.isAmbiguous!) {
               var mergeWithWarning = mergeObjectList(
@@ -138,7 +137,60 @@ class ResponseGenerator {
         }
       }
     }
+    // var classDefinition = ClassDefinition(
+    //     className, _rootClassName, _privateFields, _withCopyConstructor, true);
+    // for (var element in classDefinition.fields.values) {
+    //   print(element.name);
+    //   var resSimillarResponse = classSimillarResponse.firstWhere(
+    //       (e) => e.value == element.name,
+    //       orElse: (() => KeyValueDto(key: "")));
+    //   // print(resSimillarResponse);
+    //   if (resSimillarResponse.key.isNotEmpty) {
+    //     TypeDefinition searchValue = TypeDefinition(resSimillarResponse.value);
+    //     String? key = classDefinition.fields.entries
+    //         .firstWhere((entry) => entry.value == searchValue,
+    //             orElse: () => MapEntry("", TypeDefinition('')))
+    //         .key;
+    //     print('key : $key');
+    //     if (key.isNotEmpty) {
+    //       var data = classDefinition.fields[key];
+
+    //       if (data != null) {
+    //         classDefinition.fields.update(
+    //             'quiz_answer',
+    //             (value) => TypeDefinition(
+    //                   'AnswerResponse',
+    //                   subtype: data.subtype,
+    //                   isAmbiguous: data.isAmbiguous,
+    //                 ));
+    //       }
+    //     }
+    //   }
+    // }
     return warnings;
+  }
+
+  ClassDefinition? _findClassWithSameFields(ClassDefinition newClass) {
+    for (var existingClass in allClasses) {
+      if (_haveSameFields(existingClass, newClass)) {
+        return existingClass;
+      }
+    }
+    return null;
+  }
+
+  bool _haveSameFields(ClassDefinition class1, ClassDefinition class2) {
+    if (class1.fields.length != class2.fields.length) {
+      return false;
+    }
+
+    for (var field in class1.fields.entries) {
+      if (!class2.fields.containsKey(field.key) ||
+          class2.fields[field.key] != field.value) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// generateUnsafeDart will generate all classes and append one after another
@@ -147,9 +199,11 @@ class ResponseGenerator {
   /// might be returned
   DartCode generateUnsafeDart(String rawJson, {String header = ''}) {
     final jsonRawData = decodeJSON(rawJson);
+
     final astNode = parse(rawJson, Settings());
     var warnings = _generateClassDefinition(
         "${_rootClassName}Response", jsonRawData, '', astNode);
+
     // after generating all classes, replace the omited similar classes.
     for (var c in allClasses) {
       final fieldsKeys = c.fields.keys;
@@ -174,9 +228,29 @@ class ResponseGenerator {
         }
       }
     }
+
+    for (var element in allClasses) {
+      replaceQuizAnswerResponse(element);
+    }
     // Add the header to the generated code
     final code = header + allClasses.map((c) => c.toString()).join('\n');
+
     return DartCode(code, warnings);
+  }
+
+  // Method to replace 'simmilar class mode'
+  void replaceQuizAnswerResponse(ClassDefinition classDefinition) {
+    // Replace in fields
+    classDefinition.fields.forEach((key, typeDef) {
+      var valueClassSimillar = classSimillarResponse.firstWhere(
+        (element) => element.value == typeDef.name!.replaceAll("?", ''),
+        orElse: () => KeyValueDto(key: ""),
+      );
+      if (valueClassSimillar.key.isNotEmpty) {
+        typeDef.name = typeDef.name!
+            .replaceAll(typeDef.name ?? "", "${valueClassSimillar.key}?");
+      }
+    });
   }
 
   /// generateDartClasses will generate all classes and append one after another

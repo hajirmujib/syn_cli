@@ -66,7 +66,7 @@ Future<String> handleUpdateCreate(String path, String content,
     updatedContent =
         '${fileContent.substring(0, lastClosingBracePosition)}\n  $content\n${fileContent.substring(lastClosingBracePosition)}';
   } else {
-    updatedContent = "$updatedContent\n$content";
+    updatedContent = "$fileContent\n$content";
   }
 
   await file.writeAsString(updatedContent);

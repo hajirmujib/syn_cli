@@ -8,6 +8,7 @@ import 'package:syn_cli/commands/impl/generate/model/response.dart';
 import 'package:syn_cli/common/menu/menu.dart';
 import 'package:syn_cli/enum/key_value_dto.dart';
 import 'package:syn_cli/enum/output_type_enum.dart';
+import 'package:syn_cli/samples/impl/get_usecase.dart';
 import 'package:syn_cli/samples/impl/update_repository.dart';
 import 'package:syn_cli/samples/impl/update_repository_impl.dart';
 import 'package:syn_cli/samples/impl/update_services.dart';
@@ -48,6 +49,7 @@ class CreateFullApiCommand extends Command {
     }
 
     var name = onCommand;
+
 //[-d, -s, -res, -repo, -m, -u]
     // Define the map of flags and their corresponding actions
     final flagActions = {
@@ -63,85 +65,131 @@ class CreateFullApiCommand extends Command {
     for (var element in GetCli.arguments) {
       flagActions[element]?.call();
     }
-    var isExistModuel = checkForPathAlreadyExists('lib/src/$name');
-    if (isExistModuel) {
-      if (_withResponse || _withDto) {
-        //ask name response
-        var result = ask(LocaleKeys.ask_responnse_name.tr, required: false);
-        _nameResponse = result.pascalCase;
-      }
 
-      if (_withService) {
-        //init path service and create service
-        String pathService =
-            'lib/src/$name/data/remote/services/${name}_service.dart';
-        // //update service
-        await _writeService(pathService);
-      }
+    if (fromArgument.isEmpty) {
+      LogService.error("argument from can't empty");
+    } else {
+      var isExistModuel = checkForPathAlreadyExists('lib/src/$name');
+      if (isExistModuel) {
+        if (_withResponse || _withDto) {
+          //ask name response
+          var result = ask(LocaleKeys.ask_responnse_name.tr,
+              required: true, validator: Ask.alphaNumeric);
+          _nameResponse = result.pascalCase;
+          String pathResponse =
+              'lib/src/$name/data/remote/responses/${_nameResponse}_response.dart';
+          var isExistResponse = await checkForFileAlreadyExists(pathResponse);
+          print(pathResponse);
+          if (isExistResponse) {
+            LogService.error(
+                'file $pathResponse already exist, try with different name');
 
-      if (_withRepo) {
-        //init path respository and create it
-        String pathRepository =
-            'lib/src/$name/data/repository/${name}_repository.dart';
-        var isExistRepository = await checkForFileAlreadyExists(pathRepository);
-        if (isExistRepository) {
-          _updateRepository(pathRepository);
-          //init path repository impl and create it
-          String pathRepositoryImpl =
-              'lib/src/$name/data/repository/${name}_repository_impl.dart';
-          var isExistRepositoryImpl =
-              await checkForFileAlreadyExists(pathRepositoryImpl);
-          if (isExistRepositoryImpl) {
-            await _updateRepositoryImpl(pathRepositoryImpl, name);
+            return;
           }
         }
-      }
 
-      if (_withResponse) {
-        if (_nameResponse.isNotEmpty) {
-          // Create an instance of GenerateResponseCommand
-          //create response file
-          var generateResponseCommand = GenerateResponseCommand();
-          // Call the execute method to generate the response
-          await generateResponseCommand.execute(nameResponse: _nameResponse);
-
-          //generate dto from response
-          var generateDtoCommand = GenerateModelCommand();
-          // Call the execute method to generate the response
-          await generateDtoCommand.execute(nameResponse: _nameResponse);
+        if (_withService) {
+          //init path service and create service
+          String pathService =
+              'lib/src/$name/data/remote/services/${name}_service.dart';
+          var isExistService = await checkForFileAlreadyExists(pathService);
+          if (isExistService) {
+            await _writeService(pathService);
+          } else {
+            LogService.error(
+                "can't update service because file $pathService not found");
+          }
         }
+
+        if (_withRepo) {
+          //init path respository and create it
+          String pathRepository =
+              'lib/src/$name/data/repository/${name}_repository.dart';
+          var isExistRepository =
+              await checkForFileAlreadyExists(pathRepository);
+          if (isExistRepository) {
+            _updateRepository(pathRepository);
+            //init path repository impl and create it
+            String pathRepositoryImpl =
+                'lib/src/$name/data/repository/${name}_repository_impl.dart';
+            var isExistRepositoryImpl =
+                await checkForFileAlreadyExists(pathRepositoryImpl);
+            if (isExistRepositoryImpl) {
+              await _updateRepositoryImpl(pathRepositoryImpl, name);
+            } else {
+              LogService.error(
+                  "can't update repositoryImpl file $pathRepositoryImpl not found");
+            }
+          } else {
+            LogService.error(
+                "can't update repository file $pathRepository not found");
+          }
+        }
+
+        if (_withResponse) {
+          if (_nameResponse.isNotEmpty) {
+            // Create an instance of GenerateResponseCommand
+            //create response file
+            var generateResponseCommand = GenerateResponseCommand();
+            // Call the execute method to generate the response
+            await generateResponseCommand.execute(nameResponse: _nameResponse);
+
+            //generate dto from response
+            var generateDtoCommand = GenerateModelCommand();
+            // Call the execute method to generate the response
+            await generateDtoCommand.execute(nameResponse: _nameResponse);
+          }
+        }
+
+        String pathMapper = 'lib/src/$name/domain/mappers/${name}_mapper.dart';
+        var isExistMapper = await checkForFileAlreadyExists(pathMapper);
+
+        if (_withMapper && isExistMapper) {
+          _updateMapper(pathMapper, name);
+        } else {
+          LogService.error("can't update file $pathMapper not found");
+        }
+
+        String pathUseCase =
+            'lib/src/$name/domain/usecase/${_nameResponse.replaceAll('Response', '').toLowerCase()}_usecase.dart';
+        var isExistUsecase = await checkForFileAlreadyExists(pathUseCase);
+
+        if (_withUseCase && !isExistUsecase) {
+          String param = convertQueryParameters(parameterFormatted);
+
+          var generateUseCaseCommand = CreateUseCaseCommand();
+          generateUseCaseCommand.execute(
+            nameRepository: onCommand.pascalCase,
+            parameter: param,
+            nameDto: _nameResponse.replaceAll("Response", ''),
+            nameUsecase: _nameResponse.replaceAll("Response", ''),
+            nameFuncRepo: _nameService,
+            isPagination: _output == OutputTypeEnum.pagination ? true : false,
+          );
+        } else {
+          String param = convertQueryParameters(parameterFormatted);
+
+          var sample = UseCaseSample(
+              '',
+              _output == OutputTypeEnum.pagination ? true : false,
+              onCommand.pascalCase,
+              param,
+              _nameResponse.replaceAll("Response", ''),
+              _nameResponse.replaceAll("Response", ''),
+              _nameService,
+              overwrite: true);
+          handleUpdateCreate(pathUseCase, sample.content, isEndFile: true);
+          LogService.info(
+              '$pathUseCase already exist, new content added in end file');
+        }
+        // //update repository
+        // _writeContent(path);
+        LogService.success(
+            LocaleKeys.sucess_full_api_create.trArgs([name.pascalCase]));
+      } else {
+        LogService.error(
+            LocaleKeys.error_module_not_found.trArgs([name.pascalCase]));
       }
-
-      String pathMapper = 'lib/src/$name/domain/mappers/${name}_mapper.dart';
-      var isExistMapper = await checkForFileAlreadyExists(pathMapper);
-
-      if (_withMapper && isExistMapper) {
-        _updateMapper(pathMapper, name);
-      } else {}
-
-      String pathUseCase =
-          'lib/src/$name/domain/usecase/${_nameResponse.replaceAll('Response', '').toLowerCase()}_usecase.dart';
-
-      if (_withUseCase) {
-        String param = convertQueryParameters(parameterFormatted);
-
-        var generateUseCaseCommand = CreateUseCaseCommand();
-        generateUseCaseCommand.execute(
-          nameRepository: onCommand.pascalCase,
-          parameter: param,
-          nameDto: "${_nameResponse.replaceAll("Response", '')}Dto",
-          nameUsecase: _nameResponse.replaceAll("Response", ''),
-          nameFuncRepo: name.camelCase,
-          isPagination: _output == OutputTypeEnum.pagination ? true : false,
-        );
-      }
-      // //update repository
-      // _writeContent(path);
-      LogService.success(
-          LocaleKeys.sucess_full_api_create.trArgs([name.pascalCase]));
-    } else {
-      LogService.error(
-          LocaleKeys.error_module_not_found.trArgs([name.pascalCase]));
     }
   }
 
@@ -157,10 +205,6 @@ class CreateFullApiCommand extends Command {
   }
 
   Future<bool> checkForFileAlreadyExists(String defaultPath) async {
-    // var newFileModel =
-    //     Structure.model(name, 'module', true, on: onCommand, folderName: name);
-    // var pathSplit = Structure.safeSplitPath(newFileModel.path!);
-
     File file = File(defaultPath);
     if (!await file.exists()) {
       return false;
@@ -182,12 +226,17 @@ class CreateFullApiCommand extends Command {
       ],
       title: Translation(LocaleKeys.ask_method_http.trArgs([name])).toString(),
     );
+
     final methodHttp = menu.choose();
     _methodHtppSelected = methodHttp.result;
+
     //ask url
     _url = ask(LocaleKeys.ask_name_url.tr, validator: Ask.required);
     //ask name service
-    _nameService = ask(LocaleKeys.ask_name_service.tr, validator: Ask.required);
+
+    _nameService = convertToCamelCase(
+        ask(LocaleKeys.ask_name_service.tr, validator: Ask.alphaNumeric));
+
     //ask type output
 
     final menuPagination = Menu(
@@ -200,40 +249,43 @@ class CreateFullApiCommand extends Command {
     _output = menuPagination.choose().index == 0
         ? OutputTypeEnum.pagination
         : OutputTypeEnum.baseOutput;
-    //ask parameter
-    String? totalParameter = ask(
-        'Total Parameter? (*give 0 if empty parameter)',
-        validator: Ask.integer);
+    if (_output == OutputTypeEnum.baseOutput) {
+      //ask parameter
+      String? totalParameter = ask(
+          'Total Parameter? (*give 0 if empty parameter)',
+          validator: Ask.integer);
 
-    for (var i = 0; i < int.parse(totalParameter); i++) {
-      final menuTypeData = Menu(
-        ['int', 'String', 'double', 'bool', 'cancel!'],
-        title: 'Type Data ?',
-      );
+      for (var i = 0; i < int.parse(totalParameter); i++) {
+        final menuTypeData = Menu(
+          ['int', 'String', 'double', 'bool', 'cancel!'],
+          title: 'Type Data ?',
+        );
 
-      // Store the chosen index in a variable to prevent multiple calls
-      var choice = menuTypeData.choose();
-      int chosenIndex = choice.index;
+        // Store the chosen index in a variable to prevent multiple calls
+        var choice = menuTypeData.choose();
+        int chosenIndex = choice.index;
 
-      // Check if the user selected 'cancel!'
-      if (chosenIndex == menuTypeData.choices.length - 1) {
-        break;
-      } else {
-        // Get the selected type data
-        String typeDataSelected = menuTypeData.choices[chosenIndex];
+        // Check if the user selected 'cancel!'
+        if (chosenIndex == menuTypeData.choices.length - 1) {
+          break;
+        } else {
+          // Get the selected type data
+          String typeDataSelected = menuTypeData.choices[chosenIndex];
 
-        // Ask for the field name
-        String? nameField = ask(
-            'What is name field in line ${i + 1} (*example: user_data)',
-            validator: Ask.required);
+          // Ask for the field name
+          String? nameField = ask(
+              'What is name field in line ${i + 1} (*example: user_data)',
+              validator: Ask.required);
 
-        // Add the type data and field name to the list of parameters
-        _listParameter
-            .add(KeyValueDto(key: typeDataSelected, value: nameField));
+          // Add the type data and field name to the list of parameters
+          _listParameter
+              .add(KeyValueDto(key: typeDataSelected, value: nameField));
+        }
       }
+
+      parameterFormatted = formatListToString(_listParameter);
     }
 
-    parameterFormatted = formatListToString(_listParameter);
     //create services func
     String content = UpdateServicesSample(
             '',
@@ -330,7 +382,10 @@ class CreateFullApiCommand extends Command {
 
 //this convert response to dto
   String generateDartMapperClass(String classSource, String responseName) {
-    final fieldRegex = RegExp(r'final\s+((?:List<[\w<>?]+>|\w+)\??)\s+(\w+);');
+    // print(classSource);
+    final fieldRegex =
+        RegExp(r'final\s+((?:List<[\w<>?]+>|\w+Response?\??|\w+)\??)\s+(\w+);');
+
     var dartCode = '';
 
     var responseClassName = '${ReCase(responseName).pascalCase}Response';
@@ -349,32 +404,41 @@ class CreateFullApiCommand extends Command {
 
     var mainClassContent = classes[responseClassName];
     if (mainClassContent == null) {
-      throw Exception('Main response class not found in source. ');
+      throw Exception('Main response class not found in source.');
     }
 
     var processedFields = <String>{};
 
     for (var match in fieldRegex.allMatches(mainClassContent)) {
       var fieldType = match.group(1)!;
+      var originalFieldType = fieldType; // Simpan fieldType asli
+
       var fieldName = match.group(2)!;
       var camelCaseKey = ReCase(fieldName).camelCase;
       var defaultValue = getDefaultValue(fieldType);
 
-      if (fieldType.startsWith('List<')) {
+      if (originalFieldType.startsWith('List<')) {
         var elementType = fieldType.substring(
             5,
             fieldType.length -
                 2); // Extract the element type from List<elementType>
         var dtoElementType = elementType.replaceAll('Response', 'Dto');
         dartCode +=
-            '''      $camelCaseKey: this?.$camelCaseKey?.map((${camelCaseKey.camelCase}) => $dtoElementType(
-${generateNestedMapperCode(elementType, classSource, camelCaseKey.camelCase)}
+            '''      $camelCaseKey: this?.$camelCaseKey?.map((e) => $dtoElementType(
+${generateNestedMapperCode(elementType, classSource, 'e')}
       )).toList() ?? $defaultValue,\n''';
         processedFields.add(fieldName);
-      } else if (fieldType.endsWith('Response')) {
-        var dtoType = fieldType.replaceAll('Response', 'Dto');
-        dartCode +=
-            '      $camelCaseKey: this?.$camelCaseKey?.$dtoType() ?? $defaultValue,\n';
+      } else if (originalFieldType.endsWith('Response?')) {
+        var dtoType = originalFieldType.replaceAll('Response?', 'Dto');
+        dartCode += '''      $camelCaseKey: $dtoType(
+${generateNestedMapperCode(fieldType, classSource, 'this?.$camelCaseKey?')}
+      ) ?? $defaultValue,\n''';
+        processedFields.add(fieldName);
+      } else if (originalFieldType.endsWith('Response')) {
+        var dtoType = originalFieldType.replaceAll('Response', 'Dto');
+        dartCode += '''      $camelCaseKey: $dtoType(
+${generateNestedMapperCode(fieldType, classSource, 'this?.$camelCaseKey?')}
+      ) ?? $defaultValue,\n''';
         processedFields.add(fieldName);
       } else {
         if (!processedFields.contains(fieldName)) {
@@ -397,8 +461,8 @@ ${generateNestedMapperCode(elementType, classSource, camelCaseKey.camelCase)}
 
     if (nestedClassRegex.hasMatch(classSource)) {
       final classBody = nestedClassRegex.firstMatch(classSource)!.group(1)!;
-      final nestedFieldRegex =
-          RegExp(r'final\s+((?:List<[\w<>?]+>|\w+)\??)\s+(\w+);');
+      final nestedFieldRegex = RegExp(
+          r'final\s+((?:List<[\w<>?]+>|\w+Response?\??|\w+)\??)\s+(\w+);');
 
       for (var match in nestedFieldRegex.allMatches(classBody)) {
         var fieldType = match.group(1)!;
@@ -411,13 +475,19 @@ ${generateNestedMapperCode(elementType, classSource, camelCaseKey.camelCase)}
           var nestedDtoElementType =
               nestedElementType.replaceAll('Response', 'Dto');
           nestedCode +=
-              '''      $camelCaseKey: $mapperField.$camelCaseKey?.map((${camelCaseKey.camelCase}) => $nestedDtoElementType(
-${generateNestedMapperCode(nestedElementType, classSource, camelCaseKey.camelCase)}
+              '''      $camelCaseKey: $mapperField.$camelCaseKey?.map((e) => $nestedDtoElementType(
+${generateNestedMapperCode(nestedElementType, classSource, 'e')}
         )).toList() ?? $defaultValue,\n''';
+        } else if (fieldType.endsWith('Response?')) {
+          var nestedDtoType = fieldType.replaceAll('Response?', 'Dto');
+          nestedCode += '''      $camelCaseKey: $nestedDtoType(
+${generateNestedMapperCode(fieldType, classSource, '$mapperField.$camelCaseKey?')}
+        ) ?? $defaultValue,\n''';
         } else if (fieldType.endsWith('Response')) {
           var nestedDtoType = fieldType.replaceAll('Response', 'Dto');
-          nestedCode +=
-              '      $camelCaseKey: $mapperField.$camelCaseKey?.$nestedDtoType() ?? $defaultValue,\n';
+          nestedCode += '''      $camelCaseKey: $nestedDtoType(
+${generateNestedMapperCode(fieldType, classSource, '$mapperField.$camelCaseKey?')}
+        ) ?? $defaultValue,\n''';
         } else {
           nestedCode +=
               '      $camelCaseKey: $mapperField.$camelCaseKey ?? $defaultValue,\n';
@@ -428,17 +498,22 @@ ${generateNestedMapperCode(nestedElementType, classSource, camelCaseKey.camelCas
     return nestedCode;
   }
 
+// Helper function to get default value for a field type
   String getDefaultValue(String fieldType) {
     if (fieldType.startsWith('List<')) {
       return 'const []';
-    } else if (fieldType == 'int' || fieldType == 'int?') {
+    } else if (fieldType.endsWith('?')) {
+      return 'null';
+    } else if (fieldType == 'int') {
       return '0';
-    } else if (fieldType == 'double' || fieldType == 'double?') {
+    } else if (fieldType == 'double') {
       return '0.0';
-    } else if (fieldType == 'bool' || fieldType == 'bool?') {
+    } else if (fieldType == 'bool') {
       return 'false';
-    } else {
+    } else if (fieldType == 'String') {
       return "''";
+    } else {
+      return 'null';
     }
   }
 
@@ -515,6 +590,7 @@ ${generateNestedMapperCode(nestedElementType, classSource, camelCaseKey.camelCas
   }
 
   List<String> extractClassDefinitions(String fileContent) {
+    
     final classRegex = RegExp(r'class\s+\w+\s*\{[^}]+\}', multiLine: true);
     return classRegex
         .allMatches(fileContent)
@@ -545,10 +621,25 @@ ${generateNestedMapperCode(nestedElementType, classSource, camelCaseKey.camelCas
   }
 
   String formatClassDefinitions(String fileContent) {
+    
     var classDefinitions = extractClassDefinitions(fileContent);
+   
     return classDefinitions.map(formatClassDefinition).join('\n');
   }
+
 //end of convert response to dto
+  String convertToCamelCase(String input) {
+    // Menghapus spasi di awal dan di akhir string
+    String trimmedInput = input.trim();
+
+    // Menghapus karakter yang tidak diinginkan menggunakan regex
+    String cleanedInput = trimmedInput.replaceAll(RegExp(r'[^\w\s]'), '');
+
+    // Mengubah string menjadi camel case
+    String camelCaseString = ReCase(cleanedInput).camelCase;
+
+    return camelCaseString;
+  }
 
   String _toCamelCase(String text) {
     List<String> parts = text.split('_');

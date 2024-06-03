@@ -25,7 +25,7 @@ class ${_nameUsecase}UseCase{
 
   FutureOrError<${_nameDto}Dto> execute($_parameter) {
       return _repository
-          .$_nameFuncRepo($_parameter)
+          .$_nameFuncRepo(${_parameter.replaceAll("String ", "").replaceAll("int", "").replaceAll("double", "").replaceAll("bool", "")})
           .mapRight((response) => response.data.toDto());
   }
 }

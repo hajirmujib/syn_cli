@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dcli/dcli.dart';
 import 'package:http/http.dart';
+import 'package:recase/recase.dart';
 import 'package:syn_cli/common/menu/menu.dart';
 import 'package:syn_cli/common/utils/logger/log_utils.dart';
 import 'package:syn_cli/exception_handler/exceptions/cli_exception.dart';
@@ -100,7 +101,7 @@ class CreateUseCaseCommand extends Command {
         : nameFuncRepo;
 
     var sample = UseCaseSample('', finalIsPagination, finalnameRepository,
-        finalparameter, finalnameDto, finalnameUsecase, finalnameFuncRepo,
+        parameter, finalnameDto, finalnameUsecase, finalnameFuncRepo,
         overwrite: true);
     if (withArgument.isNotEmpty) {
       if (isURL(withArgument)) {
@@ -125,29 +126,17 @@ class CreateUseCaseCommand extends Command {
         }
       }
     }
-    print('name_usecase : $finalnameUsecase');
-    // var usecaseFile = handleFileCreate(
-    //   onCommand,
-    //   'usecase',
-    //   onCommand,
-    //   false,
-    //   sample,
-    //   'usecase',
-    // );
+
     writeFile(
         'lib/src/$onCommand/domain/usecase/${finalnameUsecase.toLowerCase()}_usecase.dart',
         sample.content,
         overwrite: true);
-
-    // var binindingPath = findBindingFromName(
-    //     usecaseFile.path, basename(nameUsecase.toLowerCase()));
-    // var pathSplit = Structure.safeSplitPath(usecaseFile.path);
-    // pathSplit.remove('.');
-    // pathSplit.remove('lib');
-    // if (binindingPath.isNotEmpty) {
-    //   addDependencyToBinding(
-    //       binindingPath, nameUsecase.toLowerCase(), pathSplit.join('/'));
-    // }
+    final pathDi =
+        File("lib/src/$onCommand/di/${onCommand.snakeCase}_di_module.dart");
+    var isExistMapper = await checkForFileAlreadyExists(pathDi.path);
+    if (isExistMapper) {
+      _updateDi(pathDi.path);
+    }
   }
 
   bool checkForPathAlreadyExists(String defaultPath) {
@@ -156,6 +145,26 @@ class CreateUseCaseCommand extends Command {
     } else {
       return false;
     }
+  }
+
+  Future<bool> checkForFileAlreadyExists(String defaultPath) async {
+    File file = File(defaultPath);
+    if (!await file.exists()) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  Future _updateDi(String path) async {
+    var content = '''
+@injectable
+  ${finalnameUsecase}UseCase ${finalnameUsecase.camelCase}UseCase(
+          ${finalnameRepository}Repository repository) =>
+      ${finalnameUsecase}UseCase(repository);
+      ''';
+
+    handleUpdateCreate(path, content, isEndFile: false);
   }
 
   @override

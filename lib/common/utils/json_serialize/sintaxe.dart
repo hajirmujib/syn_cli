@@ -193,6 +193,7 @@ class ClassDefinition {
   final Map<String, TypeDefinition> fields = <String, TypeDefinition>{};
   final bool _thisResponse;
   String get name => _name;
+  String get path => _pathFile;
 
   bool get privateFields => _privateFields;
 
@@ -246,25 +247,34 @@ class ClassDefinition {
   }
 
   void addField(String name, TypeDefinition typeDef) {
+    // print("key: $name name: ${typeDef.name} subtype: ${typeDef.subtype}");
     fields[name] = typeDef;
   }
 
   void _addTypeDef(TypeDefinition typeDef, StringBuffer sb) {
     sb.write('${typeDef.name}');
+
     if (typeDef.subtype != null) {
       sb.write('<${typeDef.subtype}>');
+
       if (PubspecUtils.nullSafeSupport && typeDef.name != 'dynamic') {
         sb.write('?');
       }
     }
   }
 
+  List<Map<String, dynamic>> listExisting = [];
   String _generateFieldList({int indentLevel = 1, String delimiter = ';'}) {
     return fields.keys.map((key) {
       final f = fields[key]!;
 
       var fieldName =
           fixFieldName(key, typeDef: f, privateField: privateFields);
+
+      // List<String> listType = ["String?", 'int?', "List", 'bool', 'double'];
+      // bool fieldIsResponse = !listType.contains(f.name ?? "");
+      // print("${f.name}||$fieldIsResponse");
+      // print("fieldName : $fieldName || $key");
 
       final sb = StringBuffer();
       // this for created response with json_annotation
@@ -289,9 +299,9 @@ class ClassDefinition {
             fixFieldName(key, typeDef: newTypeDef, privateField: privateFields);
 
         sb.write(' $fieldName$delimiter');
-        // sb.write('$typeWithoutNullSafety $fieldName$delimiter');
       } else {
         _addTypeDef(f, sb);
+
         sb.write(' $fieldName$delimiter');
       }
 
@@ -377,7 +387,6 @@ class ClassDefinition {
 
       if (_thisResponse == false) {
         sb.write('this.$fieldName = ');
-        
 
         // Provide default values
         if (f!.name == 'String?') {
