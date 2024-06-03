@@ -137,36 +137,7 @@ class ResponseGenerator {
         }
       }
     }
-    // var classDefinition = ClassDefinition(
-    //     className, _rootClassName, _privateFields, _withCopyConstructor, true);
-    // for (var element in classDefinition.fields.values) {
-    //   print(element.name);
-    //   var resSimillarResponse = classSimillarResponse.firstWhere(
-    //       (e) => e.value == element.name,
-    //       orElse: (() => KeyValueDto(key: "")));
-    //   // print(resSimillarResponse);
-    //   if (resSimillarResponse.key.isNotEmpty) {
-    //     TypeDefinition searchValue = TypeDefinition(resSimillarResponse.value);
-    //     String? key = classDefinition.fields.entries
-    //         .firstWhere((entry) => entry.value == searchValue,
-    //             orElse: () => MapEntry("", TypeDefinition('')))
-    //         .key;
-    //     print('key : $key');
-    //     if (key.isNotEmpty) {
-    //       var data = classDefinition.fields[key];
-
-    //       if (data != null) {
-    //         classDefinition.fields.update(
-    //             'quiz_answer',
-    //             (value) => TypeDefinition(
-    //                   'AnswerResponse',
-    //                   subtype: data.subtype,
-    //                   isAmbiguous: data.isAmbiguous,
-    //                 ));
-    //       }
-    //     }
-    //   }
-    // }
+    
     return warnings;
   }
 

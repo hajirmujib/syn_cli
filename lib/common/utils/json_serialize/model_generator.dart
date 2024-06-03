@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:dart_style/dart_style.dart';
+import 'package:syn_cli/enum/key_value_dto.dart';
 
 import '../pubspec/pubspec_utils.dart';
 import 'helpers.dart';
@@ -44,6 +45,8 @@ class ModelGenerator {
   Hint? _hintForPath(String path) {
     return hints.firstWhereOrNull((h) => h.path == path);
   }
+
+  List<KeyValueDto> classSimillarResponse = [];
 
   List<Warning> _generateClassDefinition(String className,
       dynamic jsonRawDynamicData, String path, Node? astNode) {
@@ -88,6 +91,8 @@ class ModelGenerator {
       final similarClass =
           allClasses.firstWhereOrNull((cd) => cd == classDefinition);
       if (similarClass != null) {
+        classSimillarResponse.add(
+            KeyValueDto(key: similarClass.name, value: classDefinition.name));
         final similarClassName = PubspecUtils.nullSafeSupport
             ? '${similarClass.name}?'
             : similarClass.name;
@@ -173,7 +178,26 @@ class ModelGenerator {
         }
       }
     }
+
+    for (var element in allClasses) {
+      replaceQuizAnswerResponse(element);
+    }
     return DartCode(allClasses.map((c) => c.toString()).join('\n'), warnings);
+  }
+
+  // Method to replace 'simmilar class mode'
+  void replaceQuizAnswerResponse(ClassDefinition classDefinition) {
+    // Replace in fields
+    classDefinition.fields.forEach((key, typeDef) {
+      var valueClassSimillar = classSimillarResponse.firstWhere(
+        (element) => element.value == typeDef.name!.replaceAll("?", ''),
+        orElse: () => KeyValueDto(key: ""),
+      );
+      if (valueClassSimillar.key.isNotEmpty) {
+        typeDef.name = typeDef.name!
+            .replaceAll(typeDef.name ?? "", "${valueClassSimillar.key}?");
+      }
+    });
   }
 
   /// generateDartClasses will generate all classes and append one after another
