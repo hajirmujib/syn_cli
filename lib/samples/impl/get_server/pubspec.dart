@@ -11,7 +11,7 @@ description: A new Get Server application.
 version: 1.0.0
 
 environment:
-  sdk: '>=2.4.0 <3.0.0'
+  sdk: '>=2.19.0 <4.0.0'
 
 dependencies:
 
