@@ -24,6 +24,9 @@ dependencies:
 dev_dependencies:
   lints: ^4.0.0
 
+dependency_overrides:
+  uuid: ^3.0.7
+
 executables:
   get: syn
   getx: syn
