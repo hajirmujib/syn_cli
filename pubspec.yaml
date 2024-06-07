@@ -9,7 +9,7 @@ environment:
 dependencies:
   ansicolor: ^2.0.1
   collection: ^1.15.0
-  dart_style: ^2.0.1
+  dart_style: 2.0.1
   dcli: 3.2.8
   http: ^0.13.4
   intl: 0.18.1
