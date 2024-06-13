@@ -1,4 +1,4 @@
-import 'package:example/core/domain/models/error_type.dart';
+import 'package:bloc_skeleton/core/domain/models/error_type.dart';
 
 class ErrorDto {
   String message;
@@ -6,13 +6,8 @@ class ErrorDto {
   ErrorType errorType;
 
   ErrorDto({
-    this.message = "Unknown error",
+    required this.message,
     this.errorCode = '-',
     this.errorType = ErrorType.unknown,
   });
-
-  @override
-  String toString() {
-    return 'ErrorDto{message: $message, errorCode: $errorCode, errorType: $errorType}';
-  }
 }

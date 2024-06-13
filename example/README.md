@@ -1,6 +1,6 @@
-# example
+# bloc_skeleton
 
-A new Flutter project.
+Flutter skeleton with BLoC state management
 
 ## Getting Started
 

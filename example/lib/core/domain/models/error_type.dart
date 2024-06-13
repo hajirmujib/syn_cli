@@ -4,6 +4,5 @@ enum ErrorType {
   unauthorized,
   notFound,
   internalServerError,
-  unknown,
-  tokenExpired;
+  unknown;
 }
