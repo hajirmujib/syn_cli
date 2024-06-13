@@ -53,8 +53,7 @@ dependencies:
       url: ssh://git@repo.synapsis.id:2222/software/internal/boilerplate/mobile/mobile-core-library.git
       ref: master
   syn_cli:
-    git:
-      url: https://github.com/hajirmujib/syn_cli
+    path: ../
 
 dev_dependencies:
   flutter_test:
