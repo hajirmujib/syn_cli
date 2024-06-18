@@ -1,30 +1,36 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'base_response.dart';
+part of 'base_pagination_response.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-BaseResponse<T> _$BaseResponseFromJson<T>(
+BasePaginationResponse<T> _$BasePaginationResponseFromJson<T>(
   Map<String, dynamic> json,
   T Function(Object? json) fromJsonT,
 ) =>
-    BaseResponse<T>(
+    BasePaginationResponse<T>(
       status: json['status'] as bool?,
       code: (json['code'] as num?)?.toInt(),
       message: json['message'] as String?,
+      page: (json['page'] as num?)?.toInt(),
+      count: (json['count'] as num?)?.toInt(),
+      totalData: (json['total_data'] as num?)?.toInt(),
       data: _$nullableGenericFromJson(json['data'], fromJsonT),
     );
 
-Map<String, dynamic> _$BaseResponseToJson<T>(
-  BaseResponse<T> instance,
+Map<String, dynamic> _$BasePaginationResponseToJson<T>(
+  BasePaginationResponse<T> instance,
   Object? Function(T value) toJsonT,
 ) =>
     <String, dynamic>{
       'status': instance.status,
       'code': instance.code,
       'message': instance.message,
+      'page': instance.page,
+      'count': instance.count,
+      'total_data': instance.totalData,
       'data': _$nullableGenericToJson(instance.data, toJsonT),
     };
 
