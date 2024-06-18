@@ -461,6 +461,19 @@ class ClassDefinition {
     return sb.toString();
   }
 
+  String get _fromJson {
+    return '''
+factory $name.fromJson(Map<String, dynamic> json) =>
+      _\$${name}FromJson(json);
+''';
+  }
+
+  String get _toJson {
+    return '''
+  Map<String, dynamic> toJson() => _\$${name}ToJson(this);
+''';
+  }
+
   @override
   String toString() {
     if (privateFields) {
@@ -472,7 +485,7 @@ class ClassDefinition {
             '\n\n$_copyConstructor}\n';
       } else {
         if (_thisResponse) {
-          return 'class $name {\n$_fieldList\n\n$_defaultConstructor}';
+          return '@JsonSerializable()\nclass $name {\n$_fieldList\n\n$_defaultConstructor\n\n$_fromJson\n\n$_toJson}';
         } else {
           return 'class $name {\n$_fieldList\n\n$_defaultConstructor}';
         }

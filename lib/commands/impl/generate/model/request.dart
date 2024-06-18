@@ -43,7 +43,7 @@ class GenerateRequestCommand extends Command {
     var splitPathGenerated = pathSplit.last.replaceAll('.dart', '.g.dart');
 // final responseGenerator = ResponseGenerator('MyRootClass');
     final headerString =
-        "import 'package:json_annotation/json_annotation.dart';\npart '$splitPathGenerated';\n\n@JsonSerializable()\n";
+        "import 'package:json_annotation/json_annotation.dart';\npart '$splitPathGenerated';\n";
     final dartCode = responseGenerator.generateDartClasses(await _jsonRawData,
         header: headerString);
 
@@ -56,6 +56,8 @@ class GenerateRequestCommand extends Command {
     for (var warning in dartCode.warnings) {
       LogService.info('warning: ${warning.path} ${warning.warning} ');
     }
+    print('Menjalankan dart pub run build_runner watch...');
+    'dart run build_runner watch'.run;
   }
 
   @override

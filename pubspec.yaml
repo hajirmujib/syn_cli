@@ -4,12 +4,13 @@ homepage: https://github.com/jonataslaw/syn_cli
 description: Official CLI for GetX™ framework to build Flutter and Server
   Applications easily
 environment:
-  sdk: ">=2.17.0 <4.0.0"
+  sdk: ">=3.2.6 <4.0.0"
 
 dependencies:
   ansicolor: ^2.0.1
+  build_runner: ^2.4.4
   collection: ^1.15.0
-  dart_style: 2.2.5
+  dart_style: 2.3.6
   dcli: ^4.0.1
   http: ^1.2.1
   intl: 0.18.1

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dcli/dcli.dart';
@@ -5,6 +6,7 @@ import 'package:http/http.dart';
 import 'package:recase/recase.dart';
 import 'package:syn_cli/common/menu/menu.dart';
 import 'package:syn_cli/common/utils/logger/log_utils.dart';
+import 'package:syn_cli/common/utils/pubspec/pubspec_utils.dart';
 import 'package:syn_cli/exception_handler/exceptions/cli_exception.dart';
 import 'package:syn_cli/functions/is_url/is_url.dart';
 import 'package:syn_cli/functions/replace_vars/replace_vars.dart';
@@ -24,6 +26,7 @@ class CreateUseCaseCommand extends Command {
   String finalnameUsecase = '';
   String finalnameFuncRepo = '';
   bool finalIsPagination = false;
+  String pathUseCase = '';
   @override
   String? get hint => LocaleKeys.hint_create_controller.tr;
 
@@ -37,6 +40,7 @@ class CreateUseCaseCommand extends Command {
     String nameDto = '',
     String nameUsecase = '',
     String nameFuncRepo = '',
+    String importDeps = '',
     bool? isPagination,
   }) async {
     var isExistModuel = checkForPathAlreadyExists('lib/src/$onCommand');
@@ -45,7 +49,7 @@ class CreateUseCaseCommand extends Command {
       LogService.error('module not found, create module and run again');
       return;
     } else {
-      return createUseCase(
+      return await createUseCase(
         withArgument: withArgument,
         onCommand: onCommand,
         nameRepository: nameRepository,
@@ -54,6 +58,7 @@ class CreateUseCaseCommand extends Command {
         nameUsecase: nameUsecase,
         nameFuncRepo: nameFuncRepo,
         isPagination: isPagination,
+        importDeps: importDeps,
       );
     }
   }
@@ -66,6 +71,7 @@ class CreateUseCaseCommand extends Command {
     String nameDto = '',
     String nameUsecase = '',
     String nameFuncRepo = '',
+    String importDeps = '',
     bool? isPagination,
   }) async {
     finalnameUsecase = nameUsecase.isEmpty
@@ -93,6 +99,8 @@ class CreateUseCaseCommand extends Command {
       var choice = menuIsPagination.choose();
       int chosenIndex = choice.index;
       finalIsPagination = chosenIndex == 0;
+    } else {
+      finalIsPagination = isPagination;
     }
 
     finalnameFuncRepo = nameFuncRepo.isEmpty
@@ -101,7 +109,7 @@ class CreateUseCaseCommand extends Command {
         : nameFuncRepo;
 
     var sample = UseCaseSample('', finalIsPagination, finalnameRepository,
-        parameter, finalnameDto, finalnameUsecase, finalnameFuncRepo,
+        parameter, finalnameDto, finalnameUsecase, finalnameFuncRepo, '',
         overwrite: true);
     if (withArgument.isNotEmpty) {
       if (isURL(withArgument)) {
@@ -126,16 +134,19 @@ class CreateUseCaseCommand extends Command {
         }
       }
     }
-
+    String content = '$importDeps\n${sample.content}';
+    pathUseCase =
+        'lib/src/$onCommand/domain/usecase/${finalnameUsecase.toLowerCase()}_usecase.dart';
     writeFile(
-        'lib/src/$onCommand/domain/usecase/${finalnameUsecase.toLowerCase()}_usecase.dart',
-        sample.content,
-        overwrite: true);
+      pathUseCase,
+      content,
+      overwrite: true,
+    );
     final pathDi =
         File("lib/src/$onCommand/di/${onCommand.snakeCase}_di_module.dart");
     var isExistMapper = await checkForFileAlreadyExists(pathDi.path);
     if (isExistMapper) {
-      _updateDi(pathDi.path);
+      await _updateDi(pathDi.path);
     }
   }
 
@@ -158,13 +169,17 @@ class CreateUseCaseCommand extends Command {
 
   Future _updateDi(String path) async {
     var content = '''
+
 @injectable
   ${finalnameUsecase}UseCase ${finalnameUsecase.camelCase}UseCase(
           ${finalnameRepository}Repository repository) =>
       ${finalnameUsecase}UseCase(repository);
       ''';
 
-    handleUpdateCreate(path, content, isEndFile: false);
+    await handleUpdateCreate(path, content,
+        isEndFile: false,
+        importContent:
+            "import 'package:${PubspecUtils.projectName}/${pathUseCase.replaceAll('lib/', '')}';");
   }
 
   @override

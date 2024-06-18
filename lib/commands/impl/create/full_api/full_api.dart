@@ -6,6 +6,7 @@ import 'package:syn_cli/commands/impl/create/usecase/usecase.dart';
 import 'package:syn_cli/commands/impl/generate/model/model.dart';
 import 'package:syn_cli/commands/impl/generate/model/response.dart';
 import 'package:syn_cli/common/menu/menu.dart';
+import 'package:syn_cli/common/utils/pubspec/pubspec_utils.dart';
 import 'package:syn_cli/enum/key_value_dto.dart';
 import 'package:syn_cli/enum/output_type_enum.dart';
 import 'package:syn_cli/samples/impl/get_usecase.dart';
@@ -40,6 +41,13 @@ class CreateFullApiCommand extends Command {
   bool _withMapper = true;
   bool _withUseCase = true;
   bool _withRepo = true;
+
+  //for path
+  String pathResponse = '';
+  String pathService = '';
+  String pathRepository = '';
+  String pathMapper = '';
+  String pathUseCase = '';
 
   @override
   Future<void> execute() async {
@@ -76,10 +84,10 @@ class CreateFullApiCommand extends Command {
           var result = ask(LocaleKeys.ask_responnse_name.tr,
               required: true, validator: Ask.alphaNumeric);
           _nameResponse = result.pascalCase;
-          String pathResponse =
-              'lib/src/$name/data/remote/responses/${_nameResponse}_response.dart';
+          pathResponse =
+              'lib/src/$name/data/remote/responses/${_nameResponse.snakeCase}_response.dart';
           var isExistResponse = await checkForFileAlreadyExists(pathResponse);
-          print(pathResponse);
+
           if (isExistResponse) {
             LogService.error(
                 'file $pathResponse already exist, try with different name');
@@ -87,23 +95,33 @@ class CreateFullApiCommand extends Command {
             return;
           }
         }
+        if (_withResponse) {
+          if (_nameResponse.isNotEmpty) {
+            // Create an instance of GenerateResponseCommand
+            //create response file
+            var generateResponseCommand = GenerateResponseCommand();
+            // Call the execute method to generate the response
+            var generate = await generateResponseCommand.execute(
+                nameResponse: _nameResponse);
 
-        if (_withService) {
-          //init path service and create service
-          String pathService =
-              'lib/src/$name/data/remote/services/${name}_service.dart';
-          var isExistService = await checkForFileAlreadyExists(pathService);
-          if (isExistService) {
-            await _writeService(pathService);
-          } else {
-            LogService.error(
-                "can't update service because file $pathService not found");
+            if (!generate) {
+              LogService.error(
+                  'name class ${_nameResponse.pascalCase}Response already exist in child response, try with different name');
+
+              return;
+            }
+            //generate dto from response
+            var generateDtoCommand = GenerateModelCommand();
+            // Call the execute method to generate the response
+            await generateDtoCommand.execute(nameResponse: _nameResponse);
           }
         }
 
+        await _execService(name);
+
         if (_withRepo) {
           //init path respository and create it
-          String pathRepository =
+          pathRepository =
               'lib/src/$name/data/repository/${name}_repository.dart';
           var isExistRepository =
               await checkForFileAlreadyExists(pathRepository);
@@ -126,45 +144,40 @@ class CreateFullApiCommand extends Command {
           }
         }
 
-        if (_withResponse) {
-          if (_nameResponse.isNotEmpty) {
-            // Create an instance of GenerateResponseCommand
-            //create response file
-            var generateResponseCommand = GenerateResponseCommand();
-            // Call the execute method to generate the response
-            await generateResponseCommand.execute(nameResponse: _nameResponse);
-
-            //generate dto from response
-            var generateDtoCommand = GenerateModelCommand();
-            // Call the execute method to generate the response
-            await generateDtoCommand.execute(nameResponse: _nameResponse);
-          }
-        }
-
-        String pathMapper = 'lib/src/$name/domain/mappers/${name}_mapper.dart';
+        pathMapper = 'lib/src/$name/domain/mappers/${name}_mapper.dart';
         var isExistMapper = await checkForFileAlreadyExists(pathMapper);
 
         if (_withMapper && isExistMapper) {
-          _updateMapper(pathMapper, name);
+          await _updateMapper(pathMapper, name);
         } else {
           LogService.error("can't update file $pathMapper not found");
         }
 
-        String pathUseCase =
+        pathUseCase =
             'lib/src/$name/domain/usecase/${_nameResponse.replaceAll('Response', '').toLowerCase()}_usecase.dart';
         var isExistUsecase = await checkForFileAlreadyExists(pathUseCase);
 
+        String importUseCaseDep = '''
+import 'package:${PubspecUtils.projectName}/${pathMapper.replaceAll('lib/', '')}';
+import '../models/${_nameResponse.replaceAll('response', '').snakeCase}_dto.dart';
+import 'package:${PubspecUtils.projectName}/core/utils/typedef_util.dart';
+import 'package:${PubspecUtils.projectName}/${pathRepository.replaceAll('lib/', '')}';
+import 'package:base_pkg/base_pkg.dart';
+${_output == OutputTypeEnum.pagination ? '''import 'package:${PubspecUtils.projectName}/core/domain/models/base_pagination_dto.dart';''' : ''}
+${_output == OutputTypeEnum.pagination ? '''import 'package:${PubspecUtils.projectName}/${pathResponse.replaceAll('lib/', '')}';''' : ''}
+''';
         if (_withUseCase && !isExistUsecase) {
           String param = convertQueryParameters(parameterFormatted);
 
           var generateUseCaseCommand = CreateUseCaseCommand();
-          generateUseCaseCommand.execute(
+          await generateUseCaseCommand.execute(
             nameRepository: onCommand.pascalCase,
             parameter: param,
             nameDto: _nameResponse.replaceAll("Response", ''),
             nameUsecase: _nameResponse.replaceAll("Response", ''),
             nameFuncRepo: _nameService,
             isPagination: _output == OutputTypeEnum.pagination ? true : false,
+            importDeps: importUseCaseDep,
           );
         } else {
           String param = convertQueryParameters(parameterFormatted);
@@ -177,12 +190,14 @@ class CreateFullApiCommand extends Command {
               _nameResponse.replaceAll("Response", ''),
               _nameResponse.replaceAll("Response", ''),
               _nameService,
+              importUseCaseDep,
               overwrite: true);
-          handleUpdateCreate(pathUseCase, sample.content, isEndFile: true);
+          await handleUpdateCreate(pathUseCase, sample.content,
+              isEndFile: true);
           LogService.info(
               '$pathUseCase already exist, new content added in end file');
         }
-        // //update repository
+
         // _writeContent(path);
         LogService.success(
             LocaleKeys.sucess_full_api_create.trArgs([name.pascalCase]));
@@ -191,6 +206,8 @@ class CreateFullApiCommand extends Command {
             LocaleKeys.error_module_not_found.trArgs([name.pascalCase]));
       }
     }
+    print('Menjalankan dart pub run build_runner watch...');
+    'dart run build_runner watch'.run;
   }
 
   @override
@@ -297,7 +314,37 @@ class CreateFullApiCommand extends Command {
             parameterFormatted)
         .content;
 
-    handleUpdateCreate(path, content);
+    String importResponse = '';
+    if (_withResponse) {
+      String importPaginationResponse =
+          '''import 'package:${PubspecUtils.projectName}/core/data/remote/responses/base_pagination_response.dart';''';
+      String importBaseResponse =
+          '''import 'package:${PubspecUtils.projectName}/core/data/remote/responses/base_response.dart';''';
+      importResponse =
+          '''import 'package:${PubspecUtils.projectName}/${pathResponse.replaceAll('lib/', '')}';''';
+
+      File file = File(path);
+      String existingContent = await file.readAsString();
+
+      if (_output == OutputTypeEnum.pagination &&
+          !existingContent.contains(importPaginationResponse)) {
+        importResponse =
+            '''import 'package:${PubspecUtils.projectName}/core/data/remote/responses/base_pagination_response.dart';
+        \n$importResponse''';
+      }
+
+      if (_output == OutputTypeEnum.baseOutput &&
+          !existingContent.contains(importBaseResponse)) {
+        importResponse =
+            '''import 'package:${PubspecUtils.projectName}/core/data/remote/responses/base_response.dart';\n$importResponse''';
+      }
+    }
+
+    await handleUpdateCreate(
+      path,
+      content,
+      importContent: importResponse,
+    );
   }
 
   Future _updateRepository(String path) async {
@@ -306,7 +353,13 @@ class CreateFullApiCommand extends Command {
     String content = UpdateRepositorySample(
             '', _nameService, "${_nameResponse}Response", _output, output)
         .content;
-    handleUpdateCreate(path, content);
+
+    String importResponse = '';
+    if (_withResponse) {
+      importResponse =
+          '''import 'package:${PubspecUtils.projectName}/${pathResponse.replaceAll('lib/', '')}';''';
+    }
+    await handleUpdateCreate(path, content, importContent: importResponse);
   }
 
   Future _updateRepositoryImpl(String path, String name) async {
@@ -324,7 +377,12 @@ class CreateFullApiCommand extends Command {
             paramaterService)
         .content;
 
-    handleUpdateCreate(path, content);
+    String importResponse = '';
+    if (_withResponse) {
+      importResponse =
+          '''import 'package:${PubspecUtils.projectName}/${pathResponse.replaceAll('lib/', '')}';''';
+    }
+    await handleUpdateCreate(path, content, importContent: importResponse);
   }
 
   Future _updateMapper(String path, String name) async {
@@ -335,7 +393,15 @@ class CreateFullApiCommand extends Command {
 
     var content = generateDartMapperClass(formattedClasses, _nameResponse);
 
-    handleUpdateCreate(path, content, isEndFile: true);
+    String importResponse = '';
+    if (_withResponse) {
+      importResponse =
+          '''import 'package:${PubspecUtils.projectName}/${pathResponse.replaceAll('lib/', '')}';
+import '../models/${_nameResponse.snakeCase}_dto.dart';
+          ''';
+    }
+    await handleUpdateCreate(path, content,
+        importContent: importResponse, isEndFile: true);
   }
 
   String convertQueryParameters(String input) {
@@ -590,7 +656,6 @@ ${generateNestedMapperCode(fieldType, classSource, '$mapperField.$camelCaseKey?'
   }
 
   List<String> extractClassDefinitions(String fileContent) {
-    
     final classRegex = RegExp(r'class\s+\w+\s*\{[^}]+\}', multiLine: true);
     return classRegex
         .allMatches(fileContent)
@@ -621,9 +686,8 @@ ${generateNestedMapperCode(fieldType, classSource, '$mapperField.$camelCaseKey?'
   }
 
   String formatClassDefinitions(String fileContent) {
-    
     var classDefinitions = extractClassDefinitions(fileContent);
-   
+
     return classDefinitions.map(formatClassDefinition).join('\n');
   }
 
@@ -655,4 +719,17 @@ ${generateNestedMapperCode(fieldType, classSource, '$mapperField.$camelCaseKey?'
 
   @override
   int get maxParameters => 0;
+  Future _execService(String name) async {
+    if (_withService) {
+      //init path service and create service
+      pathService = 'lib/src/$name/data/remote/services/${name}_service.dart';
+      var isExistService = await checkForFileAlreadyExists(pathService);
+      if (isExistService) {
+        await _writeService(pathService);
+      } else {
+        LogService.error(
+            "can't update service because file $pathService not found");
+      }
+    }
+  }
 }

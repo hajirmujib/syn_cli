@@ -77,6 +77,10 @@ class CreateModuleCommand extends Command {
     } else {
       Directory(path).createSync(recursive: true);
       _writeFiles(path, name!, overwrite: false);
+
+      // Jalankan build_runner watch
+      print('Menjalankan dart pub run build_runner watch...');
+      'dart run build_runner watch'.run;
     }
   }
 

@@ -7,16 +7,25 @@ class UseCaseSample extends Sample {
   final String _nameDto;
   final String _nameUsecase;
   final String _nameFuncRepo;
+  final String _import;
 
   final bool _isPagination;
-  UseCaseSample(super.path, this._isPagination, this._nameRepository,
-      this._parameter, this._nameDto, this._nameUsecase, this._nameFuncRepo,
+  UseCaseSample(
+      super.path,
+      this._isPagination,
+      this._nameRepository,
+      this._parameter,
+      this._nameDto,
+      this._nameUsecase,
+      this._nameFuncRepo,
+      this._import,
       {super.overwrite});
 
   @override
   String get content => _isPagination ? contentPagination : customParameter;
 
   String get customParameter => '''
+$_import
 
 class ${_nameUsecase}UseCase{
   final ${_nameRepository}Repository _repository;
@@ -32,6 +41,7 @@ class ${_nameUsecase}UseCase{
 ''';
 
   String get contentPagination => '''
+$_import
 
 class ${_nameUsecase}UseCase{
   final ${_nameRepository}Repository _repository;
@@ -44,9 +54,9 @@ class ${_nameUsecase}UseCase{
     String keyword=''}) {
       return _repository
           .$_nameFuncRepo(
-        page,
-        size,
-        keyword,
+        page: page,
+        size:size,
+        keyword:keyword,
       )
         .mapRight((response) {
         var data = response.data?.map(_mapData).toList() ?? [];
@@ -61,7 +71,7 @@ class ${_nameUsecase}UseCase{
       
   }
   ${_nameDto}Dto _mapData(${_nameDto}Response ${_nameDto.toLowerCase()}Response) {
-    return ${_nameDto}Response.toDto();
+    return ${_nameDto.toLowerCase()}Response.toDto();
   }
 }
 ''';

@@ -20,7 +20,7 @@ class GenerateResponseCommand extends Command {
   @override
   String get commandName => 'response';
   @override
-  Future<void> execute({String nameResponse = ''}) async {
+  Future<bool> execute({String nameResponse = ''}) async {
     var name = p.basenameWithoutExtension(withArgument).pascalCase;
     if (nameResponse.isEmpty) {
       if (withArgument.isEmpty) {
@@ -47,10 +47,15 @@ class GenerateResponseCommand extends Command {
     var splitPathGenerated = pathSplit.last.replaceAll('.dart', '.g.dart');
 // final responseGenerator = ResponseGenerator('MyRootClass');
     final headerString =
-        "import 'package:json_annotation/json_annotation.dart';\npart '$splitPathGenerated';\n\n@JsonSerializable()\n";
+        "import 'package:json_annotation/json_annotation.dart';\npart '$splitPathGenerated';\n";
     final dartCode = responseGenerator.generateDartClasses(await _jsonRawData,
         header: headerString);
 
+    final int count = RegExp(name).allMatches(dartCode.result).length;
+
+    if (count > 5) {
+      return false;
+    }
     writeFile('lib/src/${pathSplit[1]}/data/remote/responses/${pathSplit.last}',
         dartCode.result,
         overwrite: true);
@@ -58,6 +63,11 @@ class GenerateResponseCommand extends Command {
     for (var warning in dartCode.warnings) {
       LogService.info('warning: ${warning.path} ${warning.warning} ');
     }
+    if (nameResponse.isEmpty) {
+      print('Menjalankan dart pub run build_runner watch...');
+      'dart run build_runner watch'.run;
+    }
+    return true;
   }
 
   @override

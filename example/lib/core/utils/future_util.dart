@@ -1,23 +1,25 @@
+import 'package:bloc_skeleton/core/data/remote/responses/error_response.dart';
 import 'package:bloc_skeleton/core/domain/models/error_dto.dart';
 import 'package:bloc_skeleton/core/domain/models/error_type.dart';
-import 'package:bloc_skeleton/core/data/remote/responses/error_response.dart';
 import 'package:bloc_skeleton/core/utils/typedef_util.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
 
-FutureOrError<T> callOrError<T>(Future<T> Function() block,) async {
+FutureOrError<T> callOrError<T>(
+  Future<T> Function() block,
+) async {
   try {
     return Right(await block());
   } on DioError catch (e) {
     switch (e.type) {
-      case DioErrorType.connectTimeout:
+      case DioErrorType.connectionTimeout:
       case DioErrorType.sendTimeout:
       case DioErrorType.receiveTimeout:
         return Left(ErrorDto(
           message: 'Connection timeout',
           errorType: ErrorType.connectionTimeout,
         ));
-      case DioErrorType.response:
+      case DioErrorType.badResponse:
         var statusCode = e.response?.statusCode ?? 0;
         var message = '';
         try {

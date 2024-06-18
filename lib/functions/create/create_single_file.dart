@@ -49,7 +49,7 @@ File handleFileCreate(String name, String command, String on, bool extraFolder,
 }
 
 Future<String> handleUpdateCreate(String path, String content,
-    {bool isEndFile = false}) async {
+    {bool isEndFile = false, String importContent = ''}) async {
   File file = File(path);
 
   String fileContent = await file.readAsString();
@@ -69,7 +69,12 @@ Future<String> handleUpdateCreate(String path, String content,
     updatedContent = "$fileContent\n$content";
   }
 
+  if (importContent.isNotEmpty) {
+    // Menambahkan content di atas fileContent
+    updatedContent = '$importContent\n$updatedContent';
+  }
   await file.writeAsString(updatedContent);
+  LogService.success('Success update $path');
   return 'success';
 }
 

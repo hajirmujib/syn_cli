@@ -451,7 +451,7 @@ class Locales {
     'sucess_file_created': 'File: %s created successfully at path: %s',
     'sucess_route_created': '%s route created successfully.',
     'sucess_full_api_create': 'Full api created successfully',
-    'sucess_module_create': 'Module created successfullys',
+    'sucess_module_create': 'Module created successfully',
     'error_module_not_found':
         'failed created full api because module not found,\ncreate module and try again'
   };
